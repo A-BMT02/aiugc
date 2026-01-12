@@ -2,6 +2,7 @@
 
 
 import { useState } from 'react'
+import { ACTORS } from '../../lib/constants'
 import { useAvatarSelection } from '../../hooks/useAvatarSelection'
 import { useVoiceSelection } from '../../hooks/useVoiceSelection'
 import DashboardSidebar from './DashboardSidebar'
@@ -11,7 +12,7 @@ import ActorLibraryModal from '../../components/ActorLibraryModal'
 import MagicEditModal from '../../components/MagicEditModal'
 import { generateSpeech ,  generateVideo, pollVideoUntilComplete } from '../../lib/api/backend'
 
-import { ACTORS } from '../../lib/constants'
+
 import { Menu, X } from 'lucide-react'
 
 export default function DashboardPage() {
@@ -49,8 +50,9 @@ export default function DashboardPage() {
   } = useVoiceSelection()
 
   // Get selected avatar image URL
+
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
-  const selectedAvatarImage = selectedActorData?.imageUrl
+const selectedAvatarImage = selectedActorData?.imageUrl
 
   // Handlers
   const handleOpenActorLibrary = () => {
@@ -228,15 +230,15 @@ export default function DashboardPage() {
 
         {/* Video Preview */}
         <div className="flex-1 flex items-center justify-center p-4 lg:p-8">
-          <VideoPreview
-            selectedAvatar={selectedAvatar}
-            uploadedActorImage={uploadedActorImage}
-            editedImage={editedImage}
-            generatedAudio={generatedAudio}
-            generatedVideo={generatedVideo}
-            isGenerating={isGenerating}
-            generationProgress={generationProgress}
-          />
+        <VideoPreview
+  selectedAvatarImage={selectedAvatarImage}  // ← Add this
+  uploadedActorImage={uploadedActorImage}
+  editedImage={editedImage}
+  generatedAudio={generatedAudio}
+  generatedVideo={generatedVideo}
+  isGenerating={isGenerating}
+  generationProgress={generationProgress}
+/>
         </div>
       </div>
 

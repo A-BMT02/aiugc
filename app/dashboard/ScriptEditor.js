@@ -18,14 +18,14 @@ export default function ScriptEditor({ script, onChange }) {
       />
       <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
         <span>{script.length} characters</span>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <button className="p-1.5 hover:bg-white/10 rounded transition">
             <Wand2 className="w-3.5 h-3.5" />
           </button>
           <button className="p-1.5 hover:bg-white/10 rounded transition">
             <Play className="w-3.5 h-3.5" />
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   )
