@@ -9,38 +9,49 @@ export default function AuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        const supabase = createClient()
-        
-        console.log('🔄 Processing auth callback...')
-        console.log('Current URL:', window.location.href)
+    const supabase = createClient()
 
-        // Exchange the code for a session
-        const { data, error } = await supabase.auth.exchangeCodeForSession(
-          window.location.search
-        )
+    // Check if we have a hash (for implicit flow) or code (for PKCE)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    const searchParams = new URLSearchParams(window.location.search)
+    
+    const accessToken = hashParams.get('access_token')
+    const code = searchParams.get('code')
+
+    console.log('🔍 Callback Debug:')
+    console.log('URL:', window.location.href)
+    console.log('Has access_token:', !!accessToken)
+    console.log('Has code:', !!code)
+
+    // Let Supabase handle the callback automatically
+    const handleAuth = async () => {
+      try {
+        // Wait a bit for Supabase to process
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
+        // Check if session exists
+        const { data: { session }, error } = await supabase.auth.getSession()
 
         if (error) {
-          console.error('❌ Auth callback error:', error)
-          router.push('/login?error=auth_failed')
+          console.error('❌ Session error:', error)
+          router.push('/login?error=session_failed')
           return
         }
 
-        if (data?.session) {
-          console.log('✅ Session established:', data.session.user.email)
+        if (session) {
+          console.log('✅ Session found:', session.user.email)
           router.push('/dashboard')
         } else {
-          console.log('⚠️ No session found')
-          router.push('/login')
+          console.log('❌ No session')
+          router.push('/login?error=no_session')
         }
-      } catch (error) {
-        console.error('❌ Callback error:', error)
-        router.push('/login?error=callback_failed')
+      } catch (err) {
+        console.error('❌ Auth error:', err)
+        router.push('/login?error=auth_failed')
       }
     }
 
-    handleCallback()
+    handleAuth()
   }, [router])
 
   return (
