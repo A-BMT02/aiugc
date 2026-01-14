@@ -41,8 +41,7 @@ export function AuthProvider({ children }) {
       setUser(session?.user ?? null)
       setLoading(false)
 
-      // DON'T redirect on SIGNED_IN here - let callback page handle it
-      // Only handle SIGNED_OUT
+      // Handle SIGNED_OUT
       if (event === 'SIGNED_OUT') {
         console.log('👋 User signed out, redirecting to login...')
         router.push('/login')
@@ -58,17 +57,6 @@ export function AuthProvider({ children }) {
     }
   }, [supabase, router])
 
-  // Get redirect URL based on environment
-  const getRedirectUrl = () => {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/auth/callback`
-    }
-    
-    return process.env.NEXT_PUBLIC_APP_URL 
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
-      : 'http://localhost:3000/auth/callback'
-  }
-
   const value = {
     user,
     loading,
@@ -77,11 +65,15 @@ export function AuthProvider({ children }) {
       try {
         console.log('📝 Signing up user:', email)
         
+        const redirectUrl = typeof window !== 'undefined' 
+          ? `${window.location.origin}/dashboard`  // Changed to /dashboard
+          : 'http://localhost:3000/dashboard'
+        
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: getRedirectUrl(),
+            emailRedirectTo: redirectUrl,
           },
         })
         
@@ -107,6 +99,10 @@ export function AuthProvider({ children }) {
         if (error) throw error
         
         console.log('✅ Sign in successful:', data.user?.email)
+        
+        // Redirect to dashboard after successful sign in
+        router.push('/dashboard')
+        
         return data
       } catch (error) {
         console.error('❌ Sign in error:', error)
@@ -116,7 +112,10 @@ export function AuthProvider({ children }) {
     
     signInWithGoogle: async () => {
       try {
-        const redirectUrl = getRedirectUrl()
+        const redirectUrl = typeof window !== 'undefined' 
+          ? `${window.location.origin}/dashboard`
+          : 'http://localhost:3000/dashboard'
+        
         console.log('🔵 Starting Google OAuth...')
         console.log('📍 Redirect URL:', redirectUrl)
         

@@ -67,8 +67,6 @@ const handleGoogleLogin = async () => {
   try {
     setIsLoading(true)
     
-    const redirectUrl = `${window.location.origin}/auth/callback`
-    console.log('🔵 Sign in with redirect URL:', redirectUrl)
     
     const { data, error } = await signInWithGoogle()
     

@@ -12,12 +12,16 @@ import ActorLibraryModal from '../../components/ActorLibraryModal'
 import MagicEditModal from '../../components/MagicEditModal'
 import { generateSpeech ,  generateVideo, pollVideoUntilComplete , uploadReferenceVideo } from '../../lib/api/backend'
 import { useAuth } from '../../contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter , useSearchParams  } from 'next/navigation'
 import ActorSelector from './ActorSelector'
 import CustomActorUpload from './CustomActorUpload'
 import { Loader2, Menu, X } from 'lucide-react'
 
 export default function DashboardPage() {
+
+  const searchParams = useSearchParams()
+
+
 
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -66,6 +70,19 @@ export default function DashboardPage() {
 
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
 const selectedAvatarImage = selectedActorData?.imageUrl
+
+  // Handle OAuth callback if code is present
+  useEffect(() => {
+    const code = searchParams.get('code')
+    
+    if (code) {
+      console.log('🔄 Processing OAuth code on dashboard...')
+      // Supabase will automatically exchange the code
+      // Just remove the code from URL to clean it up
+      router.replace('/dashboard')
+    }
+  }, [searchParams, router])
+
 
 
   useEffect(() => {
