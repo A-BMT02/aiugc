@@ -70,18 +70,6 @@ export default function DashboardPage() {
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
 const selectedAvatarImage = selectedActorData?.imageUrl
 
-  // Handle OAuth callback if code is present
-  useEffect(() => {
-    
-    if (code) {
-      console.log('🔄 Processing OAuth code on dashboard...')
-      // Supabase will automatically exchange the code
-      // Just remove the code from URL to clean it up
-      router.replace('/dashboard')
-    }
-  }, [router])
-
-
 
   useEffect(() => {
     if (!loading && !user) {
