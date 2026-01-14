@@ -1,7 +1,7 @@
 'use client'
 
 
-import { useState } from 'react'
+import { useState , useEffect } from 'react'
 import { ACTORS } from '../../lib/constants'
 import { useAvatarSelection } from '../../hooks/useAvatarSelection'
 import { useVoiceSelection } from '../../hooks/useVoiceSelection'
@@ -10,13 +10,20 @@ import ControlPanel from './ControlPanel'
 import VideoPreview from './VideoPreview'
 import ActorLibraryModal from '../../components/ActorLibraryModal'
 import MagicEditModal from '../../components/MagicEditModal'
-import { generateSpeech ,  generateVideo, pollVideoUntilComplete } from '../../lib/api/backend'
-
-
-import { Menu, X } from 'lucide-react'
+import { generateSpeech ,  generateVideo, pollVideoUntilComplete , uploadReferenceVideo } from '../../lib/api/backend'
+import { useAuth } from '../../contexts/AuthContext'
+import { useRouter } from 'next/navigation'
+import ActorSelector from './ActorSelector'
+import CustomActorUpload from './CustomActorUpload'
+import { Loader2, Menu, X } from 'lucide-react'
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('actor-library')
+
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  
+  // const [activeTab, setActiveTab] = useState('actor-library')
   const [script, setScript] = useState('')
   const [action, setAction] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
@@ -26,6 +33,7 @@ export default function DashboardPage() {
   const [editedImage, setEditedImage] = useState(null)
   const [showActorLibrary, setShowActorLibrary] = useState(false)
   const [showMagicEditModal, setShowMagicEditModal] = useState(false)
+
   
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -34,10 +42,15 @@ export default function DashboardPage() {
   const {
     selectedAvatar,
     uploadedActorImage,
+    uploadedActorVideo,      // From hook
+    referenceType,           // From hook
     isUploading,
+    isUploadingVideo,        // From hook
     handleSelectActor,
     handleUploadActorImage,
+    handleUploadActorVideo,  // From hook
     handleRemoveUploadedImage,
+    handleRemoveUploadedVideo, // From hook
   } = useAvatarSelection()
 
   const {
@@ -54,6 +67,31 @@ export default function DashboardPage() {
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
 const selectedAvatarImage = selectedActorData?.imageUrl
 
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login')
+    }
+  }, [user, loading, router])
+
+    // Show loading spinner while checking auth
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin text-green-500 mx-auto mb-4" />
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      )
+    }
+
+  if (!user) {
+    return null
+  }
+
+
+
   // Handlers
   const handleOpenActorLibrary = () => {
     setShowActorLibrary(true)
@@ -66,8 +104,8 @@ const selectedAvatarImage = selectedActorData?.imageUrl
 
   const handleGenerate = async () => {
     // Validation
-    if (!selectedAvatar && !uploadedActorImage) {
-      alert('Please select an avatar or upload your own image')
+    if (!selectedAvatar && !uploadedActorImage && !uploadedActorVideo) {
+      alert('Please select an avatar, upload an image, or upload a reference video')
       return
     }
 
@@ -83,22 +121,29 @@ const selectedAvatarImage = selectedActorData?.imageUrl
 
     setIsGenerating(true)
     setGenerationProgress({ step: 1, message: 'Starting generation...' })
-
-    // Close mobile menu after generation starts
     setIsMobileMenuOpen(false)
 
     try {
       console.log('🎬 Starting full video generation pipeline...')
 
-      // Step 1: Get avatar image
-      const finalImage = editedImage || uploadedActorImage || selectedAvatarImage
-      console.log('🖼️ Using image:', finalImage)
+      // Determine reference (video takes priority)
+      let finalImageUrl = null
+      let finalVideoUrl = null
+      let finalReferenceType = referenceType
 
-      if (!finalImage) {
-        throw new Error('No avatar image available')
+      if (referenceType === 'video' && uploadedActorVideo) {
+        finalVideoUrl = uploadedActorVideo
+        console.log('🎥 Using video reference:', finalVideoUrl)
+      } else {
+        finalImageUrl = editedImage || uploadedActorImage || selectedAvatarImage
+        console.log('🖼️ Using image reference:', finalImageUrl)
       }
 
-      // Step 2: Generate speech
+      if (!finalImageUrl && !finalVideoUrl) {
+        throw new Error('No reference image or video available')
+      }
+
+      // Generate speech
       setGenerationProgress({ step: 2, message: 'Generating speech...' })
       console.log('🎙️ Generating speech...')
 
@@ -112,12 +157,14 @@ const selectedAvatarImage = selectedActorData?.imageUrl
       console.log('✅ Speech generated:', speechData.audioUrl)
       setGeneratedAudio(speechData.audioUrl)
 
-      // Step 3: Generate video
+      // Generate video
       setGenerationProgress({ step: 3, message: 'Creating video with lip-sync...' })
       console.log('🎬 Generating video...')
 
       const videoData = await generateVideo({
-        imageUrl: finalImage,
+        imageUrl: finalImageUrl,
+        videoUrl: finalVideoUrl,
+        referenceType: finalReferenceType,
         audioUrl: speechData.audioUrl,
         prompt: action || 'move body and hands naturally',
         seed: Date.now(),
@@ -125,7 +172,6 @@ const selectedAvatarImage = selectedActorData?.imageUrl
 
       console.log('✅ Video task created:', videoData.requestId)
 
-      // Step 4: Poll for completion
       setGenerationProgress({ step: 4, message: 'Processing video... (30-60s)' })
       
       const videoUrl = await pollVideoUntilComplete(videoData.requestId, (status) => {
@@ -136,7 +182,6 @@ const selectedAvatarImage = selectedActorData?.imageUrl
       
       setGeneratedVideo(videoUrl)
       setGenerationProgress({ step: 5, message: 'Complete!', progress: 100 })
-
       setIsGenerating(false)
       
       alert('✅ Video generated successfully!')
@@ -194,8 +239,8 @@ const selectedAvatarImage = selectedActorData?.imageUrl
           </div>
 
           <ControlPanel
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
+            // activeTab={activeTab}
+            // setActiveTab={setActiveTab}
             selectedAvatar={selectedAvatar}
             onSelectActor={handleSelectActor}
             uploadedActorImage={uploadedActorImage}
@@ -217,6 +262,12 @@ const selectedAvatarImage = selectedActorData?.imageUrl
             onGenerate={handleGenerate}
             generationProgress={generationProgress}
             isUploading={isUploading}
+
+            uploadedActorVideo={uploadedActorVideo}              // NEW
+            referenceType={referenceType}                        // NEW
+            onUploadActorVideo={handleUploadActorVideo}          // NEW
+            onRemoveUploadedVideo={handleRemoveUploadedVideo}    // NEW
+            isUploadingVideo={isUploadingVideo}  
           />
         </div>
 

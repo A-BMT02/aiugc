@@ -2,7 +2,7 @@
 
 import { Wand2, Play } from 'lucide-react'
 
-export default function ScriptEditor({ script, onChange }) {
+export default function ScriptEditor({ script, onScriptChange }) {  // Changed from onChange to onScriptChange
   return (
     <div>
       <label className="text-sm font-semibold mb-2 block">Script</label>
@@ -11,7 +11,7 @@ export default function ScriptEditor({ script, onChange }) {
       </p>
       <textarea
         value={script}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onScriptChange(e.target.value)}  // Changed to onScriptChange
         placeholder="Type exactly what you want the actor to say... ie 'Buy this supplement now to start getting bigger '"
         rows={8}
         className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition resize-none text-sm"
