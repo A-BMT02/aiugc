@@ -63,18 +63,27 @@ export default function LoginPage() {
     }
   }
 
-  const handleGoogleLogin = async () => {
-    setError('')
+const handleGoogleLogin = async () => {
+  try {
     setIsLoading(true)
-
-    try {
-      await signInWithGoogle()
-    } catch (err) {
-      console.error('Google login error:', err)
-      setError(err.message || 'Failed to sign in with Google')
-      setIsLoading(false)
+    
+    const redirectUrl = `${window.location.origin}/auth/callback`
+    console.log('🔵 Sign in with redirect URL:', redirectUrl)
+    
+    const { data, error } = await signInWithGoogle()
+    
+    if (error) {
+      console.error('❌ Sign in error:', error)
+      alert('Failed to sign in: ' + error.message)
+    } else {
+      console.log('✅ Sign in initiated:', data)
     }
+  } catch (error) {
+    console.error('❌ Error:', error)
+    alert('Failed to sign in: ' + error.message)
+    setIsLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
