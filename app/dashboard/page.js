@@ -72,7 +72,6 @@ const selectedAvatarImage = selectedActorData?.imageUrl
 
   // Handle OAuth callback if code is present
   useEffect(() => {
-    const code = searchParams.get('code')
     
     if (code) {
       console.log('🔄 Processing OAuth code on dashboard...')
@@ -80,7 +79,7 @@ const selectedAvatarImage = selectedActorData?.imageUrl
       // Just remove the code from URL to clean it up
       router.replace('/dashboard')
     }
-  }, [searchParams, router])
+  }, [router])
 
 
 
