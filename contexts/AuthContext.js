@@ -19,13 +19,15 @@ export function AuthProvider({ children }) {
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('❌ Error getting session:', error)
         }
         
         setUser(session?.user ?? null)
         setLoading(false)
+        
+        console.log('👤 Initial session:', session?.user?.email || 'No user')
       } catch (error) {
-        console.error('Session error:', error)
+        console.error('❌ Session error:', error)
         setLoading(false)
       }
     }
@@ -34,64 +36,124 @@ export function AuthProvider({ children }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email)
+      console.log('🔄 Auth state changed:', event, session?.user?.email || 'No user')
       
       setUser(session?.user ?? null)
       setLoading(false)
 
-      // Redirect to dashboard on sign in
-      if (event === 'SIGNED_IN' && session) {
-        router.push('/dashboard')
+      // DON'T redirect on SIGNED_IN here - let callback page handle it
+      // Only handle SIGNED_OUT
+      if (event === 'SIGNED_OUT') {
+        console.log('👋 User signed out, redirecting to login...')
+        router.push('/login')
       }
 
-      // Redirect to login on sign out
-      if (event === 'SIGNED_OUT') {
-        router.push('/login')
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Token refreshed')
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [supabase, router])
+
+  // Get redirect URL based on environment
+  const getRedirectUrl = () => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/auth/callback`
+    }
+    
+    return process.env.NEXT_PUBLIC_APP_URL 
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+      : 'http://localhost:3000/auth/callback'
+  }
 
   const value = {
     user,
     loading,
+    
     signUp: async (email, password) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (error) throw error
-      return data
-    },
-    signIn: async (email, password) => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      return data
-    },
-    signInWithGoogle: async () => {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
+      try {
+        console.log('📝 Signing up user:', email)
+        
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: getRedirectUrl(),
           },
-        },
-      })
-      if (error) throw error
-      return data
+        })
+        
+        if (error) throw error
+        
+        console.log('✅ Sign up successful:', data.user?.email)
+        return data
+      } catch (error) {
+        console.error('❌ Sign up error:', error)
+        throw error
+      }
     },
+    
+    signIn: async (email, password) => {
+      try {
+        console.log('🔐 Signing in user:', email)
+        
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+        
+        if (error) throw error
+        
+        console.log('✅ Sign in successful:', data.user?.email)
+        return data
+      } catch (error) {
+        console.error('❌ Sign in error:', error)
+        throw error
+      }
+    },
+    
+    signInWithGoogle: async () => {
+      try {
+        const redirectUrl = getRedirectUrl()
+        console.log('🔵 Starting Google OAuth...')
+        console.log('📍 Redirect URL:', redirectUrl)
+        
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        })
+        
+        if (error) throw error
+        
+        console.log('✅ Google OAuth initiated')
+        return data
+      } catch (error) {
+        console.error('❌ Google sign in error:', error)
+        throw error
+      }
+    },
+    
     signOut: async () => {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      try {
+        console.log('👋 Signing out user...')
+        
+        const { error } = await supabase.auth.signOut()
+        
+        if (error) throw error
+        
+        console.log('✅ Sign out successful')
+      } catch (error) {
+        console.error('❌ Sign out error:', error)
+        throw error
+      }
     },
   }
 
