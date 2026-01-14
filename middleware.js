@@ -15,7 +15,7 @@ export async function middleware(request) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -30,13 +30,22 @@ export async function middleware(request) {
   // Refresh session if expired
   const { data: { session } } = await supabase.auth.getSession()
 
+  // Allow OAuth callback (code parameter)
+  const code = request.nextUrl.searchParams.get('code')
+  if (code) {
+    console.log('🔄 OAuth code detected, allowing through')
+    return supabaseResponse
+  }
+
   // Protect dashboard route
   if (request.nextUrl.pathname.startsWith('/dashboard') && !session) {
+    console.log('🔒 No session, redirecting to login')
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Redirect to dashboard if already logged in
   if ((request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup') && session) {
+    console.log('✅ Already logged in, redirecting to dashboard')
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

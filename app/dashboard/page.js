@@ -19,7 +19,6 @@ import { Loader2, Menu, X } from 'lucide-react'
 
 export default function DashboardPage() {
 
-  const searchParams = useSearchParams()
 
 
 
