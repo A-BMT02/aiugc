@@ -1,54 +1,67 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
-import { LANGUAGES, ASPECT_RATIOS } from '../../lib/constants'
-
-export default function AdvancedSettings({ 
-  language, 
-  onLanguageChange, 
-  aspectRatio, 
-  onAspectRatioChange 
+export default function AdvancedSettings({
+  language,
+  onLanguageChange,
+  aspectRatio,
+  onAspectRatioChange,
 }) {
   return (
-    <details className="group" open>
-      <summary className="cursor-pointer text-sm font-semibold flex items-center justify-between py-2">
-        Advanced Settings
-        <ChevronRight className="w-4 h-4 transition-transform group-open:rotate-90" />
-      </summary>
-      <div className="mt-3 space-y-4">
-        <div>
-          <label className="text-xs text-gray-400 mb-2 block">Language</label>
-          <select 
-            value={language}
-            onChange={(e) => onLanguageChange(e.target.value)}
-            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition text-sm"
-          >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          {/* <label className="text-xs text-gray-400 mb-2 block">Aspect Ratio</label>
-          <div className="flex gap-2">
-            {ASPECT_RATIOS.map((ratio) => (
-              <button
-                key={ratio}
-                onClick={() => onAspectRatioChange(ratio)}
-                className={`flex-1 px-3 py-2 border rounded-lg transition text-xs font-semibold ${
-                  aspectRatio === ratio
-                    ? 'bg-green-500/20 border-green-500 text-green-400'
-                    : 'bg-white/5 border-white/10 hover:border-white/30'
-                }`}
-              >
-                {ratio}
-              </button>
-            ))}
-          </div> */}
-        </div>
+    <div>
+      <label className="text-sm font-semibold mb-3 block">Advanced Settings</label>
+
+      {/* Language Selection */}
+      <div className="mb-4">
+        <label className="text-xs text-gray-400 mb-2 block">Language</label>
+        <select
+          value={language}
+          onChange={(e) => onLanguageChange(e.target.value)}
+          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition text-sm"
+        >
+          <option value="en">English</option>
+
+        </select>
       </div>
-    </details>
+
+      {/* Aspect Ratio Selection */}
+      {/* <div>
+        <label className="text-xs text-gray-400 mb-2 block">Aspect Ratio</label>
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => onAspectRatioChange('9:16')}
+            className={`py-2 px-3 rounded-lg text-xs font-semibold transition ${
+              aspectRatio === '9:16'
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                : 'bg-white/5 border border-white/10 hover:bg-white/10'
+            }`}
+          >
+            9:16
+            <span className="block text-[10px] text-gray-500">Vertical</span>
+          </button>
+          <button
+            onClick={() => onAspectRatioChange('16:9')}
+            className={`py-2 px-3 rounded-lg text-xs font-semibold transition ${
+              aspectRatio === '16:9'
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                : 'bg-white/5 border border-white/10 hover:bg-white/10'
+            }`}
+          >
+            16:9
+            <span className="block text-[10px] text-gray-500">Horizontal</span>
+          </button>
+          <button
+            onClick={() => onAspectRatioChange('1:1')}
+            className={`py-2 px-3 rounded-lg text-xs font-semibold transition ${
+              aspectRatio === '1:1'
+                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                : 'bg-white/5 border border-white/10 hover:bg-white/10'
+            }`}
+          >
+            1:1
+            <span className="block text-[10px] text-gray-500">Square</span>
+          </button>
+        </div>
+      </div> */}
+    </div>
   )
 }

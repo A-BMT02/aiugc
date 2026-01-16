@@ -1,15 +1,54 @@
 'use client'
 
-import { Video, Image as ImageIcon, User, Settings, LogOut, X } from 'lucide-react'
+import { Video, History, LogOut, X, Plus } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { createWorkspace } from '../../lib/database'
 
 export default function DashboardSidebar({ className = '' }) {
   const { signOut, user, profile } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false)
+
+  const isWorkspace = pathname?.startsWith('/workspace/')
+  const isHistory = pathname === '/history'
+
+  const handleCreateWorkspace = async () => {
+    try {
+      setIsCreatingWorkspace(true)
+      
+      const newWorkspace = await createWorkspace({
+        userId: user.id,
+        workspaceName: `New Workspace ${new Date().toLocaleString()}`,
+        script: '',
+        voiceId: 'rachel',
+        voiceName: 'Rachel',
+        actorId: '',
+        actorName: '',
+        imageUrl: '',
+        referenceType: 'image',
+        voiceSettings: {
+          clarity: 0.75,
+          tone: 0.40,
+          emotion: 0.0,
+          speed: 1.0,
+        },
+        language: 'en',
+        aspectRatio: '9:16',
+      })
+
+      router.push(`/workspace/${newWorkspace.id}`)
+    } catch (error) {
+      console.error('Error creating workspace:', error)
+      alert('Failed to create workspace')
+    } finally {
+      setIsCreatingWorkspace(false)
+    }
+  }
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -27,7 +66,7 @@ export default function DashboardSidebar({ className = '' }) {
 
   return (
     <>
-      {/* Fixed height sidebar that fills screen */}
+      {/* Fixed height sidebar */}
       <aside className={`w-16 bg-[#1a1a1a] border-r border-white/10 flex flex-col items-center py-6 h-screen ${className}`}>
         {/* Logo */}
         <div className="mb-8 flex-shrink-0">
@@ -36,38 +75,40 @@ export default function DashboardSidebar({ className = '' }) {
           </div>
         </div>
 
-        {/* Navigation - Fixed size, no flex-1 */}
-        <nav className="flex flex-col gap-4 mb-8 flex-shrink-0">
+        {/* Navigation */}
+        <nav className="flex flex-col gap-4 flex-shrink-0">
+          {/* New Workspace Button */}
           <button 
-            className="p-3 bg-white/10 rounded-lg hover:bg-white/20 transition"
-            title="Videos"
+            onClick={handleCreateWorkspace}
+            disabled={isCreatingWorkspace}
+            className="p-3 bg-green-500 hover:bg-green-600 rounded-lg transition disabled:opacity-50 group relative"
+            title="New Workspace"
           >
-            <Video className="w-5 h-5" />
+            {isCreatingWorkspace ? (
+              <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+            ) : (
+              <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            )}
           </button>
+
+          {/* History */}
           <button 
-            className="p-3 hover:bg-white/10 rounded-lg transition"
-            title="Gallery"
+            onClick={() => router.push('/history')}
+            className={`p-3 rounded-lg transition ${
+              isHistory 
+                ? 'bg-white/10 ring-2 ring-green-500' 
+                : 'hover:bg-white/10'
+            }`}
+            title="History"
           >
-            <ImageIcon className="w-5 h-5" />
-          </button>
-          <button 
-            className="p-3 hover:bg-white/10 rounded-lg transition"
-            title="Profile"
-          >
-            <User className="w-5 h-5" />
-          </button>
-          <button 
-            className="p-3 hover:bg-white/10 rounded-lg transition"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5" />
+            <History className="w-5 h-5" />
           </button>
         </nav>
 
-        {/* Spacer - Grows to push content down */}
+        {/* Spacer */}
         <div className="flex-grow"></div>
 
-        {/* Credits - Above logout */}
+        {/* Credits */}
         {profile && (
           <div className="mb-4 flex-shrink-0">
             <div className="w-12 h-12 bg-white/5 rounded-lg flex flex-col items-center justify-center border border-white/10">
@@ -77,7 +118,7 @@ export default function DashboardSidebar({ className = '' }) {
           </div>
         )}
 
-        {/* Logout Button - Fixed at bottom */}
+        {/* Logout Button */}
         <button 
           onClick={() => setShowLogoutModal(true)}
           className="p-3 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition group border border-transparent hover:border-red-500/30 flex-shrink-0"

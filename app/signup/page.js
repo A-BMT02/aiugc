@@ -69,7 +69,7 @@ export default function SignupPage() {
     try {
       await signUp(email, password)
       
-      alert('✅ Account created! Please check your email to verify your account.')
+      alert('✅ Account created! You can now login')
       router.push('/login')
       
     } catch (err) {

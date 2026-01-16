@@ -6,25 +6,23 @@ import { uploadToSupabase, uploadReferenceVideo } from '../lib/api/backend'
 export function useAvatarSelection() {
   const [selectedAvatar, setSelectedAvatar] = useState(null)
   const [uploadedActorImage, setUploadedActorImage] = useState(null)
-  const [uploadedActorVideo, setUploadedActorVideo] = useState(null)  // NEW
-  const [referenceType, setReferenceType] = useState('image')         // NEW
+  const [uploadedActorVideo, setUploadedActorVideo] = useState(null)
+  const [referenceType, setReferenceType] = useState('image')
   const [isUploading, setIsUploading] = useState(false)
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false)     // NEW
-
-  // ✅ Quick actors for preview
-  const quickActors = [
-    'emma',
-    'noah', 
-    'olivia',
-    'liam',
-    'ava',
-    'william',
-  ]
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false)
 
   const handleSelectActor = (actorId) => {
-    setSelectedAvatar(actorId)
+    console.log('🎭 handleSelectActor called with:', actorId, 'Type:', typeof actorId)
+    
+    // Make sure actorId is a number
+    const numericId = typeof actorId === 'string' ? parseInt(actorId, 10) : actorId
+    
+    console.log('👤 Selecting actor:', numericId, 'Type:', typeof numericId)
+    
+    setSelectedAvatar(numericId)
     setUploadedActorImage(null)
-    setUploadedActorVideo(null)  // NEW: Clear video too
+    setUploadedActorVideo(null)
+    setReferenceType('image')
   }
 
   const handleUploadActorImage = async (file) => {
@@ -40,8 +38,8 @@ export function useAvatarSelection() {
 
       setUploadedActorImage(publicUrl)
       setSelectedAvatar(null)
-      setUploadedActorVideo(null)  // NEW: Clear video
-      setReferenceType('image')     // NEW
+      setUploadedActorVideo(null)
+      setReferenceType('image')
 
     } catch (error) {
       console.error('❌ Upload error:', error)
@@ -51,7 +49,6 @@ export function useAvatarSelection() {
     }
   }
 
-  // NEW: Handle video upload
   const handleUploadActorVideo = async (file) => {
     if (!file) return
 
@@ -65,8 +62,6 @@ export function useAvatarSelection() {
 
       setUploadedActorVideo(videoUrl)
       setReferenceType('video')
-      
-      // Clear image if video is uploaded
       setUploadedActorImage(null)
       setSelectedAvatar(null)
 
@@ -82,7 +77,6 @@ export function useAvatarSelection() {
     setUploadedActorImage(null)
   }
 
-  // NEW: Handle remove video
   const handleRemoveUploadedVideo = () => {
     setUploadedActorVideo(null)
     setReferenceType('image')
@@ -90,16 +84,17 @@ export function useAvatarSelection() {
 
   return {
     selectedAvatar,
+    setSelectedAvatar,
     uploadedActorImage,
-    uploadedActorVideo,     // NEW
-    referenceType,          // NEW
-    quickActors,
+    setUploadedActorImage,
+    uploadedActorVideo,
+    referenceType,
     isUploading,
-    isUploadingVideo,       // NEW
+    isUploadingVideo,
     handleSelectActor,
     handleUploadActorImage,
-    handleUploadActorVideo, // NEW
+    handleUploadActorVideo,
     handleRemoveUploadedImage,
-    handleRemoveUploadedVideo, // NEW
+    handleRemoveUploadedVideo,
   }
 }

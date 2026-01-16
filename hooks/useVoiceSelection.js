@@ -8,10 +8,24 @@ export function useVoiceSelection() {
   const [playingVoiceId, setPlayingVoiceId] = useState(null)
   const audioRef = useRef(null)
 
-  const handleSelectVoice = (voice) => {
-    setSelectedVoice(voice)
+  const handleSelectVoice = (voiceOrId) => {
+    console.log('🎤 handleSelectVoice called with:', voiceOrId, 'Type:', typeof voiceOrId)
+    
+    // Handle both voice object and voice ID string
+    if (typeof voiceOrId === 'string') {
+      // It's a voice ID, just store it
+      setSelectedVoice(voiceOrId)
+      console.log('✅ Voice ID selected:', voiceOrId)
+    } else if (voiceOrId && typeof voiceOrId === 'object') {
+      // It's a voice object, extract the ID
+      setSelectedVoice(voiceOrId.id)
+      console.log('✅ Voice object selected:', voiceOrId.name, '(ID:', voiceOrId.id + ')')
+    } else {
+      console.warn('⚠️ Invalid voice selection:', voiceOrId)
+      setSelectedVoice(null)
+    }
+    
     setShowVoiceDropdown(false)
-    console.log('✅ Voice selected:', voice.name)
   }
 
   const handlePlayVoice = async (voiceId, event, previewUrl) => {
@@ -64,6 +78,7 @@ export function useVoiceSelection() {
 
   return {
     selectedVoice,
+    setSelectedVoice,
     showVoiceDropdown,
     playingVoiceId,
     setShowVoiceDropdown,

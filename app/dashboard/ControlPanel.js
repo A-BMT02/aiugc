@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'  // Add this
+import React, { useEffect } from 'react'
 import { Users, Upload, ChevronRight, X } from 'lucide-react'
 import ActorSelector from './ActorSelector'
 import CustomActorUpload from './CustomActorUpload'
@@ -41,7 +41,18 @@ export default function ControlPanel({
   isUploading,
   isUploadingVideo,
 }) {
-  const [activeTab, setActiveTab] = React.useState('actor-library')
+  // Determine initial tab based on whether custom avatar exists
+  const hasCustomAvatar = !!(uploadedActorImage || uploadedActorVideo)
+  const [activeTab, setActiveTab] = React.useState(
+    hasCustomAvatar ? 'custom-avatar' : 'actor-library'
+  )
+
+  // Auto-switch to custom tab when user uploads
+  useEffect(() => {
+    if (uploadedActorImage || uploadedActorVideo) {
+      setActiveTab('custom-avatar')
+    }
+  }, [uploadedActorImage, uploadedActorVideo])
 
   return (
     <div className="w-full h-full overflow-y-auto bg-[#111111] pb-24 lg:pb-6">
@@ -75,6 +86,9 @@ export default function ControlPanel({
           >
             <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             Custom Avatar
+            {hasCustomAvatar && (
+              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse"></span>
+            )}
           </button>
         </div>
       </div>

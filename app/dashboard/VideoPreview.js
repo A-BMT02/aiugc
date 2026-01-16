@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Play, Pause, Volume2, Maximize, Video, Download, Sparkles, Music, Check, Loader2 } from 'lucide-react'
 
 export default function VideoPreview({ 
-  selectedAvatar,       // ADD this
+  selectedAvatarImage,  // ← Change from selectedAvatar
   uploadedActorImage, 
   uploadedActorVideo,  
   referenceType, 
@@ -21,10 +21,7 @@ export default function VideoPreview({
   const audioRef = useRef(null)
   const videoRef = useRef(null)
 
-  // Get selected avatar image from ACTORS
-  const selectedAvatarImage = selectedAvatar?.imageUrl || null
-
-  // Priority: Generated Video > Edited Image > Uploaded Image > Selected Image
+  // Priority: Generated Video > Edited Image > Uploaded Image > Selected Avatar Image
   const displayImage = editedImage || uploadedActorImage || selectedAvatarImage
   const displayVideo = uploadedActorVideo
 
@@ -157,8 +154,7 @@ export default function VideoPreview({
                 </div>
               </div>
             </>
-          )
-         : displayVideo && referenceType === 'video' && !isGenerating ? (
+          ) : displayVideo && referenceType === 'video' && !isGenerating ? (
             // Show reference video preview
             <>
               <video
@@ -166,19 +162,19 @@ export default function VideoPreview({
                 className="absolute inset-0 w-full h-full object-cover"
                 controls
               />
-              {/* Badge moved to top-left to not block controls */}
+              {/* Badge */}
               <div className="absolute top-3 left-3 bg-purple-500 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1.5 z-20 pointer-events-none">
                 <Video className="w-3 h-3" />
                 <span className="text-xs font-semibold">Video Reference</span>
               </div>
-              {/* Info at bottom - pointer-events-none so clicks go through */}
+              {/* Info */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 pointer-events-none">
                 <p className="text-xs sm:text-sm font-semibold">Custom Video Reference</p>
                 <p className="text-[10px] sm:text-xs text-purple-400">Video-to-video mode</p>
               </div>
             </>
           ) : displayImage ? (
-            // Show image preview
+            // Show image preview (edited, uploaded, or selected avatar)
             <>
               <img 
                 src={displayImage} 
@@ -197,47 +193,47 @@ export default function VideoPreview({
             <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
               <Video className="w-16 h-16 mb-4" />
               <p className="text-sm">No preview available</p>
+              <p className="text-xs text-gray-600 mt-2">Select an avatar to get started</p>
             </div>
           )}
         </div>
 
         {/* Audio Player - Show when audio exists and no video yet */}
         {generatedAudio && !generatedVideo && (
-  <div className="mt-3 sm:mt-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3 sm:p-4">
-    <div className="flex items-center gap-2 sm:gap-3">
-      <button
-        onClick={handlePlayAudio}
-        className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 hover:bg-purple-600 rounded-full flex items-center justify-center transition flex-shrink-0"
-      >
-        {isPlayingAudio ? (
-          <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-        ) : (
-          <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
+          <div className="mt-3 sm:mt-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                onClick={handlePlayAudio}
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-500 hover:bg-purple-600 rounded-full flex items-center justify-center transition flex-shrink-0"
+              >
+                {isPlayingAudio ? (
+                  <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                ) : (
+                  <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white ml-0.5" />
+                )}
+              </button>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-semibold truncate">
+                  Generated Audio
+                </p>
+                <p className="text-[10px] sm:text-xs text-gray-400">
+                  Click to play voice
+                </p>
+              </div>
+
+              <a
+                href={generatedAudio}
+                download="generated-audio.mp3"
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition flex-shrink-0"
+              >
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              </a>
+            </div>
+
+            <audio ref={audioRef} src={generatedAudio} className="hidden" />
+          </div>
         )}
-      </button>
-
-      <div className="flex-1 min-w-0">
-        <p className="text-xs sm:text-sm font-semibold truncate">
-          Generated Audio
-        </p>
-        <p className="text-[10px] sm:text-xs text-gray-400">
-          Click to play voice
-        </p>
-      </div>
-
-      <a
-        href={generatedAudio}
-        download="generated-audio.mp3"
-        className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition flex-shrink-0"
-      >
-        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-      </a>
-    </div>
-
-    <audio ref={audioRef} src={generatedAudio} className="hidden" />
-  </div>
-)}
-
 
         {/* Download Button */}
         {generatedVideo ? (
@@ -269,7 +265,7 @@ export default function VideoPreview({
               : displayVideo && referenceType === 'video'
               ? 'Video reference ready - add script to generate'
               : displayImage
-              ? 'Preview your avatar'
+              ? 'Preview your avatar - ready to generate'
               : 'Select an avatar and generate your video'}
           </p>
         </div>
