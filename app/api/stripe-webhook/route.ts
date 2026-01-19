@@ -2,24 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
-})
+// Add runtime config to prevent build-time evaluation
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-//spabase cliet 
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+// Lazy initialization - only create Stripe client when route is called
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not set')
   }
-)
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  })
+}
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
+const getSupabaseAdmin = () => {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Supabase environment variables are not set')
+  }
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 const getRawBody = async (req: NextRequest): Promise<Buffer> => {
   const chunks: Uint8Array[] = []
@@ -48,6 +59,15 @@ const PLAN_CREDITS = {
 
 export async function POST(req: NextRequest) {
   try {
+    // Initialize clients at runtime
+    const stripe = getStripe()
+    const supabaseAdmin = getSupabaseAdmin()
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+    if (!webhookSecret) {
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 })
+    }
+
     const rawBody = await getRawBody(req)
     const sig = req.headers.get('stripe-signature')
 
@@ -77,7 +97,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
         }
 
-        // Get the subscription - retrieve returns the subscription object directly
+        // Get the subscription
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as Stripe.Subscription
         
         // Determine credits based on plan
