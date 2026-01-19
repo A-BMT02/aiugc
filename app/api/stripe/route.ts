@@ -2,13 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-12-15.clover',
-})
+// Add runtime config to prevent build-time evaluation
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
-//function to create a Stripe checkout session 
+// Lazy initialization - only create Stripe client when route is called
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-12-15.clover',
+  })
+}
+
+// Function to create a Stripe checkout session 
 export async function POST(req: NextRequest) {
   try {
+    // Initialize Stripe at runtime
+    const stripe = getStripe()
+    
     const authHeader = req.headers.get('Authorization')
     
     if (!authHeader) {
@@ -30,7 +43,7 @@ export async function POST(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized - Invalid token : ' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 })
     }
 
     const { priceId, planName } = await req.json()
