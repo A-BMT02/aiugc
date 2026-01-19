@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, Upload, Sparkles, Loader2, Wand2 } from 'lucide-react'
-import { editImage, uploadToSupabase } from '../lib/api/backend'
+import { editImage, uploadToSupabase } from '../app/api/backend'
 import { ACTORS } from '../lib/constants'
 
 export default function MagicEditModal({ 

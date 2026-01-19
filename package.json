@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@stripe/stripe-js": "^8.6.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.90.1",
     "axios": "^1.13.2",
@@ -22,6 +23,7 @@
     "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.69.0",
     "react-player": "^3.4.0",
+    "stripe": "^20.2.0",
     "tailwind-merge": "^3.4.0",
     "zod": "^4.2.1",
     "zustand": "^5.0.9"

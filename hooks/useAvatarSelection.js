@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { uploadToSupabase, uploadReferenceVideo } from '../lib/api/backend'
+import { uploadToSupabase, uploadReferenceVideo } from '../app/api/backend'
 
 export function useAvatarSelection() {
   const [selectedAvatar, setSelectedAvatar] = useState(null)

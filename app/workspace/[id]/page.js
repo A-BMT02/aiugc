@@ -9,7 +9,7 @@ import ControlPanel from '../../dashboard/ControlPanel'
 import VideoPreview from '../../dashboard/VideoPreview'
 import ActorLibraryModal from '../../../components/ActorLibraryModal'
 import MagicEditModal from '../../../components/MagicEditModal'
-import { generateSpeech, generateVideo, pollVideoUntilComplete } from '../../../lib/api/backend'
+import { generateSpeech, generateVideo, pollVideoUntilComplete } from '../../api/backend'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
 import { 

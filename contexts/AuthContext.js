@@ -4,7 +4,25 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { createClient } from '../lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
-const AuthContext = createContext({})
+/**
+ * @typedef {Object} AuthContextType
+ * @property {Object|null} user
+ * @property {boolean} loading
+ * @property {(email: string, password: string) => Promise<any>} signUp
+ * @property {(email: string, password: string) => Promise<any>} signIn
+ * @property {() => Promise<any>} signInWithGoogle
+ * @property {() => Promise<void>} signOut
+ */
+
+/** @type {import('react').Context<AuthContextType>} */
+const AuthContext = createContext({
+  user: null,
+  loading: true,
+  signUp: async () => {},
+  signIn: async () => {},
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+})
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -66,7 +84,7 @@ export function AuthProvider({ children }) {
         console.log('📝 Signing up user:', email)
         
         const redirectUrl = typeof window !== 'undefined' 
-          ? `${window.location.origin}/dashboard`  // Changed to /dashboard
+          ? `${window.location.origin}/dashboard`
           : 'http://localhost:3000/dashboard'
         
         const { data, error } = await supabase.auth.signUp({
@@ -163,6 +181,10 @@ export function AuthProvider({ children }) {
   )
 }
 
+/**
+ * Hook to use auth context
+ * @returns {AuthContextType}
+ */
 export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {
