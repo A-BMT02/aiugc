@@ -289,8 +289,10 @@ export default function MagicEditModal({
             </p>
           </div>
         </div>
+
+        
   
-        {/* Footer - Fixed */}
+        {/* Footer is fixed - Fixed */}
         <div className="border-t border-white/10 p-4 sm:p-5 lg:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 flex-shrink-0">
           <button
             onClick={onClose}
