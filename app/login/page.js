@@ -63,6 +63,8 @@ export default function LoginPage() {
     }
   }
 
+  
+  // google login
 const handleGoogleLogin = async () => {
   try {
     setIsLoading(true)
