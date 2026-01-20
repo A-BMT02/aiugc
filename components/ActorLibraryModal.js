@@ -7,18 +7,31 @@ import { ACTORS } from '../lib/constants'
 export default function ActorLibraryModal({ isOpen, onClose, onSelectActor, selectedActor }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
+  const [filterRace, setFilterRace] = useState('all')
+
 
   const categories = [
     { id: 'all', name: 'All Actors', count: ACTORS.length },
-    { id: 'female', name: 'Female', count: ACTORS.filter(a => a.category === 'female').length },
-    { id: 'male', name: 'Male', count: ACTORS.filter(a => a.category === 'male').length },
+    { id: 'Female', name: 'Female', count: ACTORS.filter(a => a.category === 'Female').length },
+    { id: 'Male', name: 'Male', count: ACTORS.filter(a => a.category === 'Male').length },
   ]
+
+  const races = [
+    { id: 'all', name: 'All Races', count: ACTORS.length },
+    { id: 'Caucasian', name: 'Caucasian', count: ACTORS.filter(a => a.Race === 'Caucasian').length },
+    { id: 'Black', name: 'Black', count: ACTORS.filter(a => a.Race === 'Black').length },
+    { id: 'Asian', name: 'Asian', count: ACTORS.filter(a => a.Race === 'Asian').length },
+  ]
+  
 
   const filteredActors = ACTORS.filter(actor => {
     const matchesSearch = actor.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = filterCategory === 'all' || actor.category === filterCategory
-    return matchesSearch && matchesCategory
+    const matchesRace = filterRace === 'all' || actor.Race === filterRace
+  
+    return matchesSearch && matchesCategory && matchesRace
   })
+  
 
   const handleSelectActor = (actor) => {
     onSelectActor(actor.id)
@@ -78,6 +91,24 @@ export default function ActorLibraryModal({ isOpen, onClose, onSelectActor, sele
               </button>
             ))}
           </div>
+
+          {/* Race Filters */}
+<div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 scrollbar-hide">
+  {races.map((race) => (
+    <button
+      key={race.id}
+      onClick={() => setFilterRace(race.id)}
+      className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition whitespace-nowrap flex-shrink-0 ${
+        filterRace === race.id
+          ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+          : 'bg-white/5 text-gray-400 hover:bg-white/10'
+      }`}
+    >
+      {race.name} ({race.count})
+    </button>
+  ))}
+</div>
+
         </div>
   
         {/* Actor Grid - Responsive columns */}

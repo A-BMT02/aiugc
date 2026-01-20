@@ -167,7 +167,7 @@ export async function getVideoStatus(requestId) {
 
 // Poll until video is ready
 export async function pollVideoUntilComplete(requestId, onProgress) {
-  const maxAttempts = 240
+  const maxAttempts = 1800 // 30 minutes
   const intervalMs = 1000
 
   for (let i = 0; i < maxAttempts; i++) {
