@@ -12,12 +12,7 @@ export default function ActorSelector({
   // Get selected actor data
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
 
-  console.log('🎭 ActorSelector render:', {
-    selectedAvatarId: selectedAvatar,
-    selectedAvatarType: typeof selectedAvatar,
-    foundActor: selectedActorData,
-    foundActorName: selectedActorData?.name
-  })
+
 
   return (
     <div>
@@ -30,14 +25,14 @@ export default function ActorSelector({
           
           // Debug log for each actor
           if (isSelected) {
-            console.log('✅ Actor is selected:', actor.id, actor.name)
+            
           }
           
           return (
             <button
               key={actor.id}
               onClick={() => {
-                console.log('🖱️ Actor clicked:', actor.id, actor.name)
+               
                 onSelectActor(actor.id)
               }}
               className={`group relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all ${

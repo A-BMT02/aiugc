@@ -1,24 +1,24 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#111111]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <Header />
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <div className="max-w-4xl mx-auto px-6 py-12 sm:py-16 lg:py-20 mt-20">
+        {/* Back Button */}
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-green-400 transition mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+
         {/* Title */}
         <div className="mb-12">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4">
@@ -33,7 +33,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">1. Acceptance of Terms</h2>
             <p className="mb-4">
-              By accessing and using AI UGC Builder ("the Service"), you agree to be bound by these Terms of Service. 
+              By accessing and using Blobbi ("the Service"), you agree to be bound by these Terms of Service. 
               If you do not agree to these terms, please do not use the Service.
             </p>
             <p>
@@ -46,7 +46,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">2. Description of Service</h2>
             <p className="mb-4">
-              AI UGC Builder is an AI-powered platform that allows users to create user-generated content (UGC) 
+              Blobbi is an AI-powered platform that allows users to create user-generated content (UGC) 
               videos using artificial intelligence technology. The Service includes:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
@@ -173,8 +173,8 @@ export default function TermsPage() {
               If you have questions about these Terms, please contact us at:
             </p>
             <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-lg">
-              <p className="font-semibold text-white">AI UGC Builder Support</p>
-              <p className="text-gray-400 mt-2">Email: support@aiugcbuilder.com</p>
+              <p className="font-semibold text-white">Blobbi Support</p>
+              <p className="text-gray-400 mt-2">Email: support@blobbi.com</p>
             </div>
           </section>
         </div>
@@ -182,7 +182,7 @@ export default function TermsPage() {
         {/* Footer */}
         <div className="mt-16 pt-8 border-t border-white/10">
           <p className="text-sm text-gray-500 text-center">
-            By using AI UGC Builder, you acknowledge that you have read and understood these Terms of Service.
+            By using Blobbi, you acknowledge that you have read and understood these Terms of Service.
           </p>
         </div>
       </div>

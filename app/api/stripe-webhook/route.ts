@@ -51,10 +51,15 @@ const getRawBody = async (req: NextRequest): Promise<Buffer> => {
 }
 
 // Credit mapping for each plan
+// 10 credits per minute of video
+// Start Up: 6 min = 60 credits + 2 credits (10 edits @ 0.2) = 62 ≈ 65 credits
+// Growth: 11 min = 110 credits + 4 credits (20 edits @ 0.2) = 114 ≈ 120 credits
+// Pro: 21 min = 210 credits + 6 credits (30 edits @ 0.2) = 216 ≈ 225 credits
 const PLAN_CREDITS = {
-  starter: 300,
-  growth: 700,
-  pro: 1500,
+  'start up': 65,
+  starter: 65,
+  growth: 120,
+  pro: 225,
 }
 
 export async function POST(req: NextRequest) {
@@ -88,47 +93,107 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         console.log('✅ Checkout completed:', session.id)
+        console.log('📦 Session metadata:', session.metadata)
+        console.log('💳 Session subscription:', session.subscription)
 
         const userId = session.metadata?.user_id
         const planName = session.metadata?.plan_name
 
         if (!userId || !planName) {
-          console.error('Missing metadata in session')
+          console.error('❌ Missing metadata in session:', { userId, planName })
           return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
         }
 
+        console.log('👤 Processing for user:', userId, 'Plan:', planName)
+
+        // Normalize plan name to match database constraint
+        // "Start Up" -> "starter"
+        const normalizedPlanName = planName.toLowerCase() === 'start up' ? 'starter' : planName.toLowerCase()
+        console.log('📝 Normalized plan name:', normalizedPlanName)
+
         // Get the subscription
-        const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as Stripe.Subscription
+        const subscriptionId = session.subscription as string
+        if (!subscriptionId) {
+          console.error('❌ No subscription ID in session')
+          return NextResponse.json({ error: 'No subscription found' }, { status: 400 })
+        }
+
+        console.log('🔍 Fetching subscription:', subscriptionId)
+        const subscription : any = await stripe.subscriptions.retrieve(subscriptionId)
+        console.log('📅 Subscription periods:', {
+          start: subscription.current_period_start,
+          end: subscription.current_period_end
+        })
         
         // Determine credits based on plan
         const planKey = planName.toLowerCase() as keyof typeof PLAN_CREDITS
         const creditsToAdd = PLAN_CREDITS[planKey] || 0
 
-        // Update user in database
-        const { data: currentUser } = await supabaseAdmin
+        if (creditsToAdd === 0) {
+          console.error('⚠️ Unknown plan:', planName, 'Available plans:', Object.keys(PLAN_CREDITS))
+        } else {
+          console.log('💰 Credits to add:', creditsToAdd)
+        }
+
+        // Get current user data
+        console.log('🔍 Fetching current user data for:', userId)
+        const { data: currentUser, error: fetchError } = await supabaseAdmin
           .from('users')
           .select('credits_remaining, total_credits_purchased')
           .eq('id', userId)
           .single()
 
+        if (fetchError) {
+          console.error('❌ Error fetching user:', fetchError)
+        } else {
+          console.log('📊 Current user data:', currentUser)
+        }
+
         const newCredits = (currentUser?.credits_remaining || 0) + creditsToAdd
         const totalPurchased = (currentUser?.total_credits_purchased || 0) + creditsToAdd
 
-        await supabaseAdmin
+        console.log('➕ New credits:', newCredits, 'Total purchased:', totalPurchased)
+
+        // Convert Unix timestamps to ISO strings safely
+        const startDate = subscription.current_period_start 
+          ? new Date(subscription.current_period_start * 1000).toISOString()
+          : new Date().toISOString()
+        
+        const endDate = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+
+        console.log('📅 Dates:', { startDate, endDate })
+
+        const updateData = {
+          subscription_tier: normalizedPlanName,
+          subscription_status: 'active',
+          subscription_start_date: startDate,
+          subscription_end_date: endDate,
+          stripe_subscription_id: subscription.id,
+          credits_remaining: newCredits,
+          total_credits_purchased: totalPurchased,
+        }
+
+        console.log('💾 Updating user with data:', updateData)
+
+        // Update user in database
+        const { data: updatedUser, error: updateError } = await supabaseAdmin
           .from('users')
-          .update({
-            subscription_tier: planName.toLowerCase(),
-            subscription_status: 'active',
-            subscription_start_date: new Date((subscription as any).current_period_start * 1000).toISOString(),
-            subscription_end_date: new Date((subscription as any).current_period_end * 1000).toISOString(),
-            stripe_subscription_id: subscription.id,
-            credits_remaining: newCredits,
-            total_credits_purchased: totalPurchased,
-          })
+          .update(updateData)
           .eq('id', userId)
+          .select()
+
+        if (updateError) {
+          console.error('❌ Error updating user:', updateError)
+          return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+        }
+
+        console.log('✅ User updated successfully:', updatedUser)
 
         // Record the transaction
-        await supabaseAdmin
+        console.log('💳 Recording credit transaction...')
+        const { error: transactionError } = await supabaseAdmin
           .from('credit_transactions')
           .insert({
             user_id: userId,
@@ -139,26 +204,39 @@ export async function POST(req: NextRequest) {
             description: `${planName} subscription - initial purchase`,
           })
 
+        if (transactionError) {
+          console.error('❌ Error recording transaction:', transactionError)
+        } else {
+          console.log('✅ Transaction recorded')
+        }
+
         // Record payment history
-        await supabaseAdmin
+        console.log('📝 Recording payment history...')
+        const { error: paymentError } = await supabaseAdmin
           .from('payment_history')
           .insert({
             user_id: userId,
-            amount: session.amount_total! / 100,
+            amount: (session.amount_total || 0) / 100,
             currency: session.currency || 'usd',
             status: 'succeeded',
             stripe_payment_intent_id: session.payment_intent as string,
-            subscription_plan_id: planName.toLowerCase(),
+            subscription_plan_id: normalizedPlanName,
             credits_added: creditsToAdd,
             description: `${planName} subscription purchase`,
           })
 
-        console.log(`✅ User ${userId} subscribed to ${planName}, added ${creditsToAdd} credits`)
+        if (paymentError) {
+          console.error('❌ Error recording payment:', paymentError)
+        } else {
+          console.log('✅ Payment history recorded')
+        }
+
+        console.log(`✅✅✅ COMPLETE: User ${userId} subscribed to ${planName}, added ${creditsToAdd} credits`)
         break
       }
 
       case 'invoice.payment_succeeded': {
-        const invoice = event.data.object as Stripe.Invoice
+        const invoice : any = event.data.object as Stripe.Invoice
 
         // Skip the first invoice (handled by checkout.session.completed)
         if (invoice.billing_reason === 'subscription_create') {
@@ -167,7 +245,13 @@ export async function POST(req: NextRequest) {
         }
 
         // Handle subscription renewal
-        const subscription = await stripe.subscriptions.retrieve((invoice as any).subscription as string) as Stripe.Subscription
+        const subscriptionId = invoice.subscription as string
+        if (!subscriptionId) {
+          console.error('No subscription ID in invoice')
+          return NextResponse.json({ error: 'No subscription found' }, { status: 400 })
+        }
+
+        const subscription : any = await stripe.subscriptions.retrieve(subscriptionId)
         
         const { data: userData } = await supabaseAdmin
           .from('users')
@@ -186,12 +270,16 @@ export async function POST(req: NextRequest) {
         const newCredits = (userData.credits_remaining || 0) + creditsToAdd
         const totalPurchased = (userData.total_credits_purchased || 0) + creditsToAdd
 
+        const endDate = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000).toISOString()
+          : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
         await supabaseAdmin
           .from('users')
           .update({
             credits_remaining: newCredits,
             total_credits_purchased: totalPurchased,
-            subscription_end_date: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            subscription_end_date: endDate,
           })
           .eq('id', userData.id)
 
@@ -202,7 +290,7 @@ export async function POST(req: NextRequest) {
             type: 'purchase',
             amount: creditsToAdd,
             balance_after: newCredits,
-            stripe_payment_id: (invoice as any).payment_intent as string,
+            stripe_payment_id: invoice.payment_intent as string,
             description: `${userData.subscription_tier} subscription renewal`,
           })
 
@@ -213,7 +301,7 @@ export async function POST(req: NextRequest) {
             amount: invoice.amount_paid / 100,
             currency: invoice.currency,
             status: 'succeeded',
-            stripe_payment_intent_id: (invoice as any).payment_intent as string,
+            stripe_payment_intent_id: invoice.payment_intent as string,
             subscription_plan_id: userData.subscription_tier,
             credits_added: creditsToAdd,
             description: 'Subscription renewal',
@@ -224,7 +312,7 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription : any = event.data.object as Stripe.Subscription
 
         await supabaseAdmin
           .from('users')

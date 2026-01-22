@@ -40,6 +40,7 @@ export default function ControlPanel({
   generationProgress,
   isUploading,
   isUploadingVideo,
+  estimatedCredits,
 }) {
   // Determine initial tab based on whether custom avatar exists
   const hasCustomAvatar = !!(uploadedActorImage || uploadedActorVideo)
@@ -160,7 +161,7 @@ export default function ControlPanel({
               {generationProgress?.message || 'Generating...'}
             </>
           ) : (
-            'Generate Video'
+            `Generate Video ( ~${estimatedCredits} credits )`
           )}
         </button>
       </div>

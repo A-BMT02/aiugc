@@ -1,25 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Upload, Sparkles, Loader2, Wand2 } from 'lucide-react'
+import { X, Upload, Sparkles, Loader2, Wand2, Zap } from 'lucide-react'
 import { editImage, uploadToSupabase } from '../app/api/backend'
 import { ACTORS } from '../lib/constants'
-
+import { calculateEditCost, checkUserCredits, deductCredits, deductCreditsWithClient } from '../lib/credits'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase/client'
+// CHANGE TO (add supabase):
 export default function MagicEditModal({ 
   isOpen, 
   onClose, 
   selectedAvatar,
   uploadedActorImage,
-  editedImage,  // ← ADD THIS PROP
+  editedImage,
   onEditComplete 
 }) {
+const { user, profile, refreshProfile , updateCredits  } = useAuth()
+
+
   const [productImage, setProductImage] = useState(null)
   const [productPreview, setProductPreview] = useState(null)
   const [prompt, setPrompt] = useState('')
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState(null)
 
-  // Get the base image - PRIORITY: Edited > Uploaded > Selected
+  const EDIT_COST = calculateEditCost() // 0.2 credits
+
+  // Get the base image
   const selectedActorData = ACTORS.find(a => a.id === selectedAvatar)
   const baseImage = editedImage || uploadedActorImage || selectedActorData?.imageUrl || null
   
@@ -56,58 +64,162 @@ export default function MagicEditModal({
     }
   }
 
-  const handleEdit = async () => {
-    if (!baseImage) {
-      setError('Please select or upload an actor image first')
-      return
-    }
+  /**
+ * NUCLEAR OPTION: Create fresh authenticated client for each query
+ * 
+ * Since the singleton loses auth, let's create a fresh client each time
+ * This is less efficient but guarantees authentication
+ */
 
-    if (!prompt || prompt.trim().length === 0) {
-      setError('Please enter a prompt describing the edit')
-      return
-    }
+/**
+ * USE getUser() instead of getSession()
+ * getUser() is more reliable and validates the token with the server
+ */
 
-    setIsEditing(true)
-    setError(null)
+const handleEdit = async () => {
+  console.log('🎬 ===== HANDLE EDIT STARTED =====')
+  
+  // Check auth using getUser() instead of getSession()
+  if (!user?.id) {
+    console.error('❌ No authenticated user in context')
+    setError('Please log in to use Magic Edit')
+    return
+  }
+  
+  console.log('✅ Auth user from context:', user.id)
+  
+  
 
-    try {
-      console.log('🎨 Starting Magic Edit...')
-      console.log('🖼️ Base image:', baseImage)
-      console.log('📝 Prompt:', prompt)
-
-      let productUrl = null
-
-      // Upload product image if provided (optional)
-      if (productImage) {
-        console.log('📦 Product image:', productImage.name)
-        productUrl = await uploadToSupabase(productImage, 'products')
-        console.log('✅ Product uploaded:', productUrl)
-      }
-
-      // Edit the image (productUrl can be null if no product)
-      const editedImageUrl = await editImage(baseImage, productUrl, prompt)
-      console.log('✅ Image edited:', editedImageUrl)
-
-      // Call completion handler
-      onEditComplete(editedImageUrl)
-      
-      // Close modal
-      onClose()
-      
-    } catch (err) {
-      console.error('❌ Edit error:', err)
-      setError(err.message || 'Failed to edit image')
-    } finally {
-      setIsEditing(false)
-    }
+  
+  // Validation
+  if (!baseImage) {
+    setError('Please select or upload an actor image first')
+    return
   }
 
+  if (!prompt || prompt.trim().length === 0) {
+    setError('Please enter a prompt describing the edit')
+    return
+  }
+
+  console.log('✅ All checks passed')
+  
+  setIsEditing(true)
+  setError(null)
+
+  try {
+    // Check credits
+    console.log('💳 Checking credits...')
+    console.log('💳 Query user ID:', user.id)
+    
+    const { data: creditData, error: creditError } = await supabase
+      .from('users')
+      .select('credits_remaining')
+      .eq('id', user.id)
+      .single()
+    
+    console.log('💳 Query result:', creditData, creditError)
+    
+    if (creditError) {
+      console.error('❌ Credit check error:', creditError)
+      throw creditError
+    }
+    
+    if (creditData.credits_remaining < EDIT_COST) {
+      setError(`Insufficient credits. You have ${creditData.credits_remaining.toFixed(1)} but need ${EDIT_COST} credits.`)
+      setIsEditing(false)
+      return
+    }
+    console.log('✅ Credit check passed:', creditData.credits_remaining)
+
+    // Upload product image if provided
+    let productUrl = null
+    if (productImage) {
+      console.log('📦 Uploading product image')
+      productUrl = await uploadToSupabase(productImage, 'products')
+    }
+
+    // Edit image
+    console.log('🎨 Editing image...')
+    const editedImageUrl = await editImage(baseImage, productUrl, prompt)
+    console.log('✅ Image edited:', editedImageUrl)
+
+    // Deduct credits
+    console.log('💳 Deducting credits...')
+    const { data: currentUser, error: fetchError } = await supabase
+      .from('users')
+      .select('credits_remaining, total_credits_used')
+      .eq('id', user.id)
+      .single()
+
+    if (fetchError) {
+      console.error('❌ Fetch error:', fetchError)
+      throw fetchError
+    }
+
+    const newBalance =  currentUser.credits_remaining - EDIT_COST
+    const totalUsed = (currentUser.total_credits_used || 0) + EDIT_COST
+
+    console.log('   - New balance:', newBalance)
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        credits_remaining: newBalance,
+        total_credits_used: totalUsed,
+      })
+      .eq('id', user.id)
+
+    if (updateError) {
+      console.error('❌ Update error:', updateError)
+      throw updateError
+    }
+
+    console.log(`✅ Deducted ${EDIT_COST} credits. New balance: ${newBalance}`)
+
+    // Record transaction
+    try {
+      await supabase
+        .from('credit_transactions')
+        .insert({
+          user_id: user.id,
+          type: 'usage',
+          amount: EDIT_COST,
+          balance_after: newBalance,
+          description: `Magic Edit: ${prompt.substring(0, 50)}`,
+        })
+      console.log('✅ Transaction recorded')
+    } catch (txError) {
+      console.warn('⚠️ Transaction recording failed:', txError)
+    }
+
+    updateCredits(-EDIT_COST)
+
+
+    // Close modal
+    onEditComplete(editedImageUrl)
+    onClose()
+    
+    console.log('🎉 ===== EDIT COMPLETED =====')
+    
+  } catch (err) {
+    console.error('❌ EDIT FAILED:', err)
+    setError(err.message || 'Failed to edit image')
+  } finally {
+    setIsEditing(false)
+  }
+}
+
+
+
   if (!isOpen) return null
+
+ 
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-[#1a1a1a] rounded-xl sm:rounded-2xl w-full max-w-sm sm:max-w-2xl lg:max-w-4xl max-h-[90vh] flex flex-col border border-white/10">
-        {/* Header - Fixed */}
+        {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 lg:p-6 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
@@ -115,7 +227,9 @@ export default function MagicEditModal({
             </div>
             <div className="min-w-0">
               <h2 className="text-base sm:text-lg lg:text-xl font-bold truncate">Magic Edit</h2>
-              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">Transform your image with AI</p>
+              <p className="text-xs sm:text-sm text-gray-400 hidden sm:block">
+                Cost: {EDIT_COST} credits • Balance: {profile?.credits_remaining?.toFixed(1) || 0}
+              </p>
             </div>
           </div>
           <button
@@ -135,8 +249,23 @@ export default function MagicEditModal({
               <p className="text-xs sm:text-sm text-red-400">{error}</p>
             </div>
           )}
+
+          {/* Credit Info for Mobile */}
+          <div className="sm:hidden mb-4 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-400">This edit will cost:</span>
+              <span className="font-bold text-green-400 flex items-center gap-1">
+                <Zap className="w-3 h-3" />
+                {EDIT_COST} credits
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs mt-1">
+              <span className="text-gray-400">Your balance:</span>
+              <span className="font-semibold">{profile?.credits_remaining?.toFixed(1) || 0}</span>
+            </div>
+          </div>
   
-          {/* Images Section - Stack on mobile, side-by-side on tablet+ */}
+          {/* Images Section */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
             {/* Actor Image */}
             <div>
@@ -174,7 +303,6 @@ export default function MagicEditModal({
                       )}
                     </div>
                     
-                    {/* Edited Badge */}
                     {imageSource === 'edited' && (
                       <div className="absolute top-2 sm:top-3 right-2 sm:right-3 bg-green-500 backdrop-blur-sm px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg flex items-center gap-1 sm:gap-1.5">
                         <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -290,9 +418,7 @@ export default function MagicEditModal({
           </div>
         </div>
 
-        
-  
-        {/* Footer is fixed - Fixed */}
+        {/* Footer */}
         <div className="border-t border-white/10 p-4 sm:p-5 lg:p-6 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 flex-shrink-0">
           <button
             onClick={onClose}
@@ -304,7 +430,7 @@ export default function MagicEditModal({
           
           <button
             onClick={handleEdit}
-            disabled={isEditing || !baseImage || !prompt}
+            disabled={isEditing || !baseImage || !prompt || !profile || profile.credits_remaining < EDIT_COST}
             className="w-full sm:w-auto order-1 sm:order-2 px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition text-sm font-semibold flex items-center justify-center gap-2"
           >
             {isEditing ? (
@@ -315,7 +441,7 @@ export default function MagicEditModal({
             ) : (
               <>
                 <Wand2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Apply Magic Edit
+                Apply Magic Edit ({EDIT_COST} credits)
               </>
             )}
           </button>

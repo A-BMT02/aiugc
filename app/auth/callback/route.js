@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '../../../lib/supabase/client'
+import { supabase } from '../../../lib/supabase/client'
 import { Loader2 } from 'lucide-react'
 
 export default function AuthCallback() {

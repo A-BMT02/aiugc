@@ -1,24 +1,24 @@
 import Link from 'next/link'
 import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="border-b border-white/10 bg-[#111111]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link 
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
-      </div>
+      <Header />
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+      <div className="max-w-4xl mx-auto px-6 py-12 sm:py-16 lg:py-20 mt-20">
+        {/* Back Button */}
+        <Link 
+          href="/"
+          className="inline-flex items-center gap-2 text-gray-400 hover:text-green-400 transition mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+
         {/* Title */}
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-sm font-semibold mb-6">
@@ -39,17 +39,17 @@ export default function PrivacyPage() {
             <p className="text-sm text-gray-400">Your data is encrypted in transit and at rest</p>
           </div>
           <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-            <Eye className="w-8 h-8 text-blue-400 mb-3" />
+            <Eye className="w-8 h-8 text-green-400 mb-3" />
             <h3 className="font-semibold mb-2">No Selling</h3>
             <p className="text-sm text-gray-400">We never sell your personal information</p>
           </div>
           <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-            <Database className="w-8 h-8 text-purple-400 mb-3" />
+            <Database className="w-8 h-8 text-green-400 mb-3" />
             <h3 className="font-semibold mb-2">Minimal Collection</h3>
             <p className="text-sm text-gray-400">We only collect what's necessary</p>
           </div>
           <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
-            <UserCheck className="w-8 h-8 text-orange-400 mb-3" />
+            <UserCheck className="w-8 h-8 text-green-400 mb-3" />
             <h3 className="font-semibold mb-2">Your Control</h3>
             <p className="text-sm text-gray-400">You can delete your data anytime</p>
           </div>
@@ -106,8 +106,8 @@ export default function PrivacyPage() {
           {/* Section 3 */}
           <section>
             <h2 className="text-2xl font-bold text-white mb-4">3. Data Storage and Security</h2>
-            <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-6 mb-4">
-              <p className="text-blue-400 font-semibold mb-2">🔒 Security Measures</p>
+            <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-6 mb-4">
+              <p className="text-green-400 font-semibold mb-2">🔒 Security Measures</p>
               <p>
                 We implement industry-standard security measures including encryption, secure servers, 
                 regular security audits, and access controls to protect your data.
@@ -161,8 +161,8 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-4">
               To exercise these rights, contact us at{' '}
-              <a href="mailto:privacy@aiugcbuilder.com" className="text-green-400 hover:text-green-300">
-                privacy@aiugcbuilder.com
+              <a href="mailto:privacy@blobbi.com" className="text-green-400 hover:text-green-300">
+                privacy@blobbi.com
               </a>
             </p>
           </section>
@@ -236,10 +236,10 @@ export default function PrivacyPage() {
               If you have questions about this Privacy Policy or our data practices:
             </p>
             <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
-              <p className="font-semibold text-white mb-4">AI UGC Builder Privacy Team</p>
+              <p className="font-semibold text-white mb-4">Blobbi Privacy Team</p>
               <div className="space-y-2 text-gray-400">
-                <p>Email: privacy@aiugcbuilder.com</p>
-                <p>Support: support@aiugcbuilder.com</p>
+                <p>Email: privacy@blobbi.com</p>
+                <p>Support: support@blobbi.com</p>
               </div>
             </div>
           </section>

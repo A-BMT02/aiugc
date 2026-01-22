@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
 import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, Video, Sparkles, Check, Loader2, AlertCircle } from 'lucide-react'
+import Header from '@/components/Header'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -86,9 +87,14 @@ const handleGoogleLogin = async () => {
 }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header */}
+      <Header />
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col lg:flex-row">
       {/* Left Side - Branding & Features */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-green-900/20 via-black to-purple-900/20 p-8 xl:p-12 flex-col justify-center relative overflow-hidden">
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-green-900/20 via-black to-purple-900/20 px-6 py-8 xl:px-12 xl:py-12 flex-col justify-center relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 left-20 w-72 h-72 bg-green-500 rounded-full blur-[120px] animate-pulse"></div>
@@ -97,15 +103,19 @@ const handleGoogleLogin = async () => {
 
         <div className="relative z-10 max-w-xl">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-              <Video className="w-6 h-6 sm:w-7 sm:h-7" />
-            </div>
+          {/* <div className="flex items-center gap-3 mb-12">
+            <img
+              src="/blobbi-logo-green500-exact.png"
+              alt="Blobbi"
+              className="h-10 md:h-12 object-contain"
+            />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold">UGC Builder</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                blobbi<span className="text-green-400">.</span>
+              </h1>
               <p className="text-sm text-gray-400">AI Video Platform</p>
             </div>
-          </div>
+          </div> */}
 
           {/* Heading */}
           <div className="mb-12">
@@ -113,7 +123,7 @@ const handleGoogleLogin = async () => {
               Welcome Back to
               <br />
               <span className="bg-gradient-to-r from-green-400 to-purple-400 bg-clip-text text-transparent">
-                UGC Builder
+                blobbi
               </span>
             </h2>
             <p className="text-gray-400 text-base sm:text-lg xl:text-xl">
@@ -124,9 +134,9 @@ const handleGoogleLogin = async () => {
           {/* Feature List */}
           <div className="space-y-4 sm:space-y-6">
             {[
-              { icon: Sparkles, text: '50+ AI Actors with realistic expressions' },
-              { icon: Video, text: '21 Professional voices in multiple accents' },
-              { icon: Check, text: 'Magic Edit for seamless product integration' },
+              { icon: Sparkles, text: 'Multiple AI Actors with realistic expressions' },
+              { icon: Video, text: 'Multiple Professional voices in multiple accents' },
+              { icon: Check, text: 'AI Editing for seamless product integration' },
               { icon: Check, text: 'Download unlimited high-quality videos' },
             ].map((feature, index) => (
               <div key={index} className="flex items-start gap-3 sm:gap-4">
@@ -143,15 +153,19 @@ const handleGoogleLogin = async () => {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12">
+      <div className="flex-1 flex items-center justify-center px-6 py-6 sm:px-8 sm:py-8 lg:px-12 lg:py-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-              <Video className="w-6 h-6" />
-            </div>
+            <img
+              src="/blobbi-logo-green500-exact.png"
+              alt="Blobbi"
+              className="h-10 object-contain"
+            />
             <div>
-              <h1 className="text-2xl font-bold">UGC Builder</h1>
+              <h1 className="text-2xl font-bold tracking-tight">
+                blobbi<span className="text-green-400">.</span>
+              </h1>
             </div>
           </div>
 
@@ -309,6 +323,8 @@ const handleGoogleLogin = async () => {
           </div>
         </div>
       </div>
+      </div>
+      {/* End Main Content */}
     </div>
   )
 }

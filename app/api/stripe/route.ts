@@ -91,8 +91,8 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/create?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/#pricing`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/history?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
       metadata: {
         user_id: user.id,
         plan_name: planName,

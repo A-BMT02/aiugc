@@ -12,18 +12,22 @@ import MagicEditModal from '../../../components/MagicEditModal'
 import { generateSpeech, generateVideo, pollVideoUntilComplete } from '../../api/backend'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useRouter, useParams } from 'next/navigation'
+import { supabase } from '../../../lib/supabase/client'
+
 import { 
   getWorkspace, 
   updateWorkspace, 
   updateWorkspaceVideo, 
   updateWorkspaceFailed 
 } from '../../../lib/database'
-import { Loader2, Menu, X, Check } from 'lucide-react'
+import { Loader2, Menu, X, Check ,Zap  } from 'lucide-react'
+import { set } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 export default function WorkspacePage() {
-  const { user, loading: authLoading } = useAuth()
+  const { user, profile, loading: authLoading , updateCredits } = useAuth()
+
   const router = useRouter()
   const params = useParams()
   const workspaceId = params.id
@@ -46,6 +50,8 @@ export default function WorkspacePage() {
   const [lastSaved, setLastSaved] = useState(null) // Track last save time
   const [isSaving, setIsSaving] = useState(false)  // For save indicator
   const [isInitialLoad, setIsInitialLoad] = useState(true) 
+  const [estimatedCredits , setEstimatedCredits] = useState(0) ;
+
   const hasLoadedWorkspace = useRef(false)
   const {
     selectedAvatar,
@@ -85,6 +91,10 @@ export default function WorkspacePage() {
       loadWorkspace()
     }
   }, [user, authLoading, workspaceId])
+
+  useEffect(() => {
+    setEstimatedCredits(estimateCreditsFromScript(script))
+  } , [script])
 
   const loadWorkspace = async () => {
     try {
@@ -236,7 +246,26 @@ useEffect(() => {
   workspaceId,
 ])
 
+
+const WORDS_PER_MINUTE = 150
+const CREDITS_PER_MINUTE = 10
+
+const estimateCreditsFromScript = (script) => {
+  const words = script.trim().split(/\s+/).length
+  const minutes = words / WORDS_PER_MINUTE
+  return Math.ceil(minutes * CREDITS_PER_MINUTE * 10) / 10
+}
+
+
 const handleGenerate = async () => {
+
+  const VIDEO_GENERATION_COST = 10
+
+if (!profile || profile.credits_remaining < VIDEO_GENERATION_COST) {
+  alert('❌ Not enough credits (10 required)')
+  return
+}
+
   if (!selectedAvatar && !uploadedActorImage && !uploadedActorVideo) {
     alert('Please select an avatar or upload an image')
     return
@@ -259,6 +288,20 @@ const handleGenerate = async () => {
   const startTime = Date.now()
 
   try {
+    // 💳 Estimate credit cost from script
+const estimatedCredits = estimateCreditsFromScript(script)
+
+console.log('📝 Script words:', script.trim().split(/\s+/).length)
+console.log('⏱ Estimated minutes:', (script.trim().split(/\s+/).length / WORDS_PER_MINUTE).toFixed(2))
+console.log('💳 Estimated credit cost:', estimatedCredits)
+
+// Optional safety check
+if (profile.credits_remaining < estimatedCredits) {
+  alert(`Not enough credits. This video requires ~${estimatedCredits} credits.`)
+  return
+}
+
+
     let finalImageUrl = null
     let finalVideoUrl = null
     let finalReferenceType = referenceType
@@ -272,6 +315,7 @@ const handleGenerate = async () => {
       finalImageUrl = editedImage || uploadedActorImage || actorImage
     }
 
+    
     // Extract voice ID if selectedVoice is an object (shouldn't happen, but just in case)
     const voiceId = typeof selectedVoice === 'object' ? selectedVoice.id : selectedVoice
 
@@ -321,6 +365,19 @@ const handleGenerate = async () => {
      })
      
      console.log('✅ Saved to database')
+
+     // Deduct credits in DB
+await supabase
+.from('users')
+.update({
+  credits_remaining: profile.credits_remaining - VIDEO_GENERATION_COST,
+})
+.eq('id', user.id)
+
+// Update UI immediately
+updateCredits(-estimatedCredits)
+
+
      
      setGenerationProgress({ step: 5, message: 'Complete!', progress: 100 })
      setIsGenerating(false)
@@ -398,29 +455,49 @@ const handleGenerate = async () => {
         >
           <div className="p-4 sm:p-6 lg:p-8">
             {/* Workspace Name with Auto-Save Indicator */}
+           
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold">Workspace Name</label>
-                {isSaving ? (
-                  <span className="text-xs text-gray-400 flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Saving...
-                  </span>
-                ) : lastSaved ? (
-                  <span className="text-xs text-green-400 flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Saved
-                  </span>
-                ) : null}
-              </div>
-              <input
-                type="text"
-                value={workspaceName}
-                onChange={(e) => setWorkspaceName(e.target.value)}
-                placeholder="My UGC Video"
-                className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition"
-              />
-            </div>
+  <div className="flex items-center justify-between mb-2">
+    <label className="text-sm font-semibold">Workspace Name</label>
+    
+    {/* Right side: Credit Badge + Save Indicator */}
+    <div className="flex items-center gap-3">
+      {/* Credit Badge */}
+      {profile && (
+        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
+          <Zap className="w-3.5 h-3.5 text-green-400" />
+          <span className="text-xs font-bold text-green-400">
+            {typeof profile.credits_remaining === 'number' 
+              ? profile.credits_remaining.toFixed(1) 
+              : profile.credits_remaining || 0}
+          </span>
+        </div>
+      )}
+      
+      {/* Save Indicator */}
+      {isSaving ? (
+        <span className="text-xs text-gray-400 flex items-center gap-1">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          Saving...
+        </span>
+      ) : lastSaved ? (
+        <span className="text-xs text-green-400 flex items-center gap-1">
+          <Check className="w-3 h-3" />
+          Saved
+        </span>
+      ) : null}
+    </div>
+  </div>
+  
+  <input
+    type="text"
+    value={workspaceName}
+    onChange={(e) => setWorkspaceName(e.target.value)}
+    placeholder="My UGC Video"
+    className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition"
+  />
+</div>
+
 
             <ControlPanel
               selectedAvatar={selectedAvatar}
@@ -453,6 +530,7 @@ const handleGenerate = async () => {
               generationProgress={generationProgress}
               isUploading={isUploading}
               isUploadingVideo={isUploadingVideo}
+              estimatedCredits={estimatedCredits}
             />
           </div>
         </div>

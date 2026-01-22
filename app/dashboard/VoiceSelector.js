@@ -17,11 +17,7 @@ export default function VoiceSelector({
     ? VOICES.find(v => v.id === selectedVoice) 
     : null
 
-  console.log('🎤 VoiceSelector render:', {
-    selectedVoiceId: selectedVoice,
-    selectedVoiceData: selectedVoiceData,
-    foundVoice: !!selectedVoiceData
-  })
+ 
 
   return (
     <div className="space-y-3">
