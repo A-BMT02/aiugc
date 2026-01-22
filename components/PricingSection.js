@@ -100,12 +100,12 @@ export default function PricingSection({ handleSubscribe, loadingPlan }) {
                 <span className="text-gray-400 ml-2">/month</span>
               </div>
               
-              {isYearly && (
+              {/* {isYearly && (
                 <div className="text-sm text-gray-400 mb-2">
                   ${plan.yearlyTotal} billed annually
                 </div>
               )}
-              
+               */}
               <div className="text-green-400 font-semibold mb-8">{plan.videos}</div>
               
               <button
