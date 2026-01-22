@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 
 import PricingSection from '@/components/PricingSection'
 import Header from '@/components/Header'
+import TestimonialsSection from '@/components/TestimonialsSection'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -301,6 +302,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Testimonials Section */}
+      <TestimonialsSection />
 
       {/* Pricing Section */}
       <PricingSection
