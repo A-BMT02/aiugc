@@ -52,13 +52,14 @@ function capitalizeFirstLetter(str) {
 }
 
 // Generate speech
+// ✅ CORRECT - Pass voice ID as-is
 export async function generateSpeech(text, voiceId, settings = {}) {
   const response = await fetch(`${API_URL}/api/generate-speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
       text,
-      voiceId: capitalizeFirstLetter(voiceId),
+      voiceId, // ✅ No capitalizeFirstLetter!
       ...settings
     }),
   })
@@ -68,9 +69,8 @@ export async function generateSpeech(text, voiceId, settings = {}) {
     throw new Error(error.error || 'Failed to generate speech')
   }
 
-  return response.json()
+  return response.json() // Returns { success: true, audioUrl: "..." }
 }
-
 
 // Get task status
 export async function getTaskStatus(taskId) {

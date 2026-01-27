@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ACTORS, VOICES } from '../../../lib/constants'
+import { ACTORS, getVoices } from '../../../lib/constants'
 import { useAvatarSelection } from '../../../hooks/useAvatarSelection'
 import { useVoiceSelection } from '../../../hooks/useVoiceSelection'
 import DashboardSidebar from '../../dashboard/DashboardSidebar'
@@ -31,6 +31,7 @@ export default function WorkspacePage() {
   const router = useRouter()
   const params = useParams()
   const workspaceId = params.id
+  const [voices, setVoices] = useState([])
 
   const [workspace, setWorkspace] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -78,6 +79,10 @@ export default function WorkspacePage() {
     handleSelectVoice,
     handlePlayVoice,
   } = useVoiceSelection()
+
+  useEffect(() => {
+    getVoices().then(setVoices).catch(() => setVoices([]))
+  }, [])
 
   // Load workspace data
   useEffect(() => {
@@ -200,7 +205,7 @@ useEffect(() => {
       
       // Get actor and voice data for display names
       const actorData = selectedAvatar ? ACTORS.find(a => a.id === selectedAvatar) : null
-      const voiceData = selectedVoice ? VOICES.find(v => v.id === selectedVoice) : null
+      const voiceData = selectedVoice ? voices.find(v => v.id === selectedVoice) : null
       
       // Ensure IDs are saved correctly
       const actorId = selectedAvatar ? String(selectedAvatar) : null
