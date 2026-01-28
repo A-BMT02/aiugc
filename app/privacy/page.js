@@ -2,6 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft, Shield, Lock, Eye, Database, UserCheck } from 'lucide-react'
 import Header from '@/components/Header'
 
+export const metadata = {
+  title: 'Privacy Policy',
+  description: 'Learn how Blobbi protects your data. Our Privacy Policy explains what we collect, how we use it, and your rights regarding your personal information.',
+  alternates: { canonical: 'https://blobbi.ai/privacy' },
+}
+
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-black text-white">

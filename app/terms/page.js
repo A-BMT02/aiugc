@@ -2,6 +2,12 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import Header from '@/components/Header'
 
+export const metadata = {
+  title: 'Terms of Service',
+  description: 'Read the Blobbi Terms of Service. Understand your rights and responsibilities when using our AI UGC video ad platform.',
+  alternates: { canonical: 'https://blobbi.ai/terms' },
+}
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
