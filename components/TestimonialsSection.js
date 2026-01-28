@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const testimonials = [
@@ -32,16 +32,6 @@ const testimonials = [
 export default function TestimonialsSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  // Auto-swipe testimonials every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => 
-        prevIndex === testimonials.length - 1 ? 0 : prevIndex + 1
-      )
-    }, 5000) // Change slide every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [])
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) => 
