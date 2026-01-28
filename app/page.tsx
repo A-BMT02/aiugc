@@ -150,6 +150,24 @@ export default function Home() {
             ))}
           </div>
 
+          {/* Demo Video */}
+          <div className="max-w-4xl mx-auto mt-16">
+            <h3 className="text-2xl md:text-3xl font-bold text-center mb-6">
+              See It In Action
+            </h3>
+            <div className="rounded-2xl border border-white/10 overflow-hidden">
+              <video
+                controls
+                autoPlay
+                muted
+                playsInline
+                className="w-full"
+              >
+                <source src="https://lfhcefxmgyjzggqzsxxr.supabase.co/storage/v1/object/public/static/Homepage/DemoVideo%20(1).mp4" type="video/mp4" />
+              </video>
+            </div>
+          </div>
+
           {/* Stats */}
           <div className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mt-20 pt-20 border-t border-white/10">
             <div>
