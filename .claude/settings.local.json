@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(cd:*)",
-      "Bash(npx next build)"
+      "Bash(npx next build)",
+      "WebFetch(domain:myinfluencer.ai)",
+      "Bash(curl -s \"https://myinfluencer.ai/ai-course\")",
+      "Bash(ls C:/Users/Administrator/Downloads/*.png)"
     ]
   }
 }
