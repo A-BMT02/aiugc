@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Check, X, Shield, Lock, Zap, Star, ChevronDown, ChevronUp, ArrowRight, Play } from 'lucide-react'
 
-const CHECKOUT_URL = '/signup'
+const CHECKOUT_URL = '/ai-ugc-course-checkout'
 
 const STEP_IMAGES = [
   'https://lfhcefxmgyjzggqzsxxr.supabase.co/storage/v1/object/public/static/Homepage/Steps/Step1.png',
