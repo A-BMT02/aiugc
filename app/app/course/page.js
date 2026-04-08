@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Home, Lock } from 'lucide-react'
+import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Layers, Home } from 'lucide-react'
 
 const courses = [
   {
@@ -38,7 +38,7 @@ const courses = [
     icon: Video,
     color: 'from-blue-500/20 to-blue-600/10 border-blue-500/30',
     iconColor: 'text-blue-400',
-    available: false,
+    available: true,
   },
   {
     id: 5, slug: 'meta-tiktok-campaigns',
@@ -47,7 +47,7 @@ const courses = [
     icon: BarChart2,
     color: 'from-pink-500/20 to-pink-600/10 border-pink-500/30',
     iconColor: 'text-pink-400',
-    available: false,
+    available: true,
   },
   {
     id: 6, slug: 'script-to-screen',
@@ -56,7 +56,16 @@ const courses = [
     icon: Zap,
     color: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30',
     iconColor: 'text-yellow-400',
-    available: false,
+    available: true,
+  },
+  {
+    id: 7, slug: 'product-lifestyle-ugc',
+    title: 'Product & Lifestyle UGC',
+    description: 'Beyond the talking head — product demo, unboxing, and lifestyle formats that convert.',
+    icon: Layers,
+    color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/30',
+    iconColor: 'text-cyan-400',
+    available: true,
   },
 ]
 
@@ -94,12 +103,7 @@ export default function CoursePage() {
           {courses.map((course) => {
             const Icon = course.icon
             const inner = (
-              <div className={`p-6 bg-gradient-to-br ${course.color} border rounded-2xl transition-all relative h-full flex flex-col ${course.available ? 'hover:scale-[1.02] group cursor-pointer' : 'opacity-60 cursor-not-allowed'}`}>
-                {!course.available && (
-                  <div className="absolute top-4 right-4 flex items-center gap-1.5 text-xs text-gray-500">
-                    <Lock className="w-3 h-3" /> Coming Soon
-                  </div>
-                )}
+              <div className={`p-6 bg-gradient-to-br ${course.color} border rounded-2xl transition-all relative h-full flex flex-col hover:scale-[1.02] group cursor-pointer`}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center ${course.iconColor}`}>
                     <Icon className="w-5 h-5" />
@@ -108,14 +112,14 @@ export default function CoursePage() {
                 </div>
                 <h3 className="font-black text-white text-lg leading-tight mb-3">{course.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-4">{course.description}</p>
-                <div className={`text-sm font-semibold ${course.iconColor} ${course.available ? 'group-hover:translate-x-1' : ''} transition-transform`}>
-                  {course.available ? 'Open Course →' : 'Coming Soon'}
+                <div className={`text-sm font-semibold ${course.iconColor} group-hover:translate-x-1 transition-transform`}>
+                  Open Course →
                 </div>
               </div>
             )
-            return course.available
-              ? <Link key={course.id} href={`/app/course/${course.slug}`}>{inner}</Link>
-              : <div key={course.id}>{inner}</div>
+            return (
+              <Link key={course.id} href={`/app/course/${course.slug}`}>{inner}</Link>
+            )
           })}
         </div>
       </div>
