@@ -127,7 +127,7 @@ export default function AIUGCCoursePage() {
             { stat: '10,000+', label: 'Brands & Creators Enrolled' },
             { stat: '$0', label: 'Creator Fees Required' },
             { stat: '30 min', label: 'To Your First AI UGC Ad' },
-            { stat: '4.9 / 5', label: 'Average Course Rating' },
+            { stat: '$1,500', label: 'Saved on Average' },
           ].map(({ stat, label }) => (
             <div key={label}>
               <div className="text-3xl md:text-4xl font-black">{stat}</div>
@@ -222,38 +222,36 @@ export default function AIUGCCoursePage() {
             ))}
           </div>
 
+          {/* ── BONUSES ── */}
+          <div className="mt-14">
+            <div className="text-center mb-12">
+              <p className="text-green-400 text-xs font-bold uppercase tracking-widest mb-3">Also included</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight">Plus these 3 free bonuses</h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6">
+              {[
+                { num: 'BONUS 1', title: 'The AI UGC Ads Playbook', desc: 'The complete guide to using AI UGC across paid social and organic — from briefing your first creative to scaling a winning campaign.', value: '$97 value' },
+                { num: 'BONUS 2', title: 'The AI UGC Ad Script Bank', desc: '100 done-for-you scripts across 9 niches. Hook, body, CTA — ready to drop into Blobbi and record.', value: '$147 value' },
+                { num: 'BONUS 3', title: 'The 30-Day AI UGC Production Calendar', desc: 'A day-by-day content schedule telling you exactly what to produce, what format to use, what avatar style to choose, and what metric to watch.', value: '$47 value' },
+              ].map(({ num, title, desc, value }) => (
+                <div key={num} className="relative pt-8 p-6 bg-gradient-to-br from-orange-950/30 to-black border border-orange-500/20 rounded-2xl flex flex-col">
+                  <div className="absolute -top-3 left-6">
+                    <span className="bg-orange-500 text-white text-xs font-black px-3 py-1 rounded-full">{num}</span>
+                  </div>
+                  <h3 className="font-bold text-lg mb-3">{title}</h3>
+                  <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-4">{desc}</p>
+                  <div className="flex items-center justify-between border-t border-white/10 pt-4">
+                    <span className="text-yellow-400 font-black">{value}</span>
+                    <Check className="w-5 h-5 text-green-400" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Mid-page CTA */}
           <div className="mt-14 text-center">
             <CTAButton sub="Instant access · All 4 videos + 3 bonuses · 30-day money-back guarantee" />
-          </div>
-        </div>
-      </section>
-
-      {/* ── BONUSES ── */}
-      <section className="py-20 px-6 bg-[#111111]">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-green-400 text-xs font-bold uppercase tracking-widest mb-3">Also included</p>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight">Plus these 3 free bonuses</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { num: 'BONUS 1', title: 'The AI UGC Ads Playbook', desc: 'The complete guide to using AI UGC across paid social and organic — from briefing your first creative to scaling a winning campaign.', value: '$97 value' },
-              { num: 'BONUS 2', title: 'The AI UGC Ad Script Bank', desc: '100 done-for-you scripts across 9 niches. Hook, body, CTA — ready to drop into Blobbi and record.', value: '$147 value' },
-              { num: 'BONUS 3', title: 'The 30-Day AI UGC Production Calendar', desc: 'A day-by-day content schedule telling you exactly what to produce, what format to use, what avatar style to choose, and what metric to watch.', value: '$47 value' },
-            ].map(({ num, title, desc, value }) => (
-              <div key={num} className="relative pt-8 p-6 bg-gradient-to-br from-orange-950/30 to-black border border-orange-500/20 rounded-2xl flex flex-col">
-                <div className="absolute -top-3 left-6">
-                  <span className="bg-orange-500 text-white text-xs font-black px-3 py-1 rounded-full">{num}</span>
-                </div>
-                <h3 className="font-bold text-lg mb-3">{title}</h3>
-                <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-4">{desc}</p>
-                <div className="flex items-center justify-between border-t border-white/10 pt-4">
-                  <span className="text-yellow-400 font-black">{value}</span>
-                  <Check className="w-5 h-5 text-green-400" />
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
