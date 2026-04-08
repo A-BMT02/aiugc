@@ -29,7 +29,7 @@ const courses = [
     icon: Calendar,
     color: 'from-orange-500/20 to-orange-600/10 border-orange-500/30',
     iconColor: 'text-orange-400',
-    available: false,
+    available: true,
   },
   {
     id: 4, slug: 'platform-walkthrough',
