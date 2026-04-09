@@ -11,7 +11,7 @@ const courses = [
     icon: BookOpen,
     color: 'from-purple-500/20 to-purple-600/10 border-purple-500/30',
     iconColor: 'text-purple-400',
-    available: true,
+    bonus: false,
   },
   {
     id: 2, slug: 'script-bank',
@@ -20,7 +20,7 @@ const courses = [
     icon: FileText,
     color: 'from-green-500/20 to-green-600/10 border-green-500/30',
     iconColor: 'text-green-400',
-    available: true,
+    bonus: false,
   },
   {
     id: 3, slug: 'production-calendar',
@@ -29,7 +29,7 @@ const courses = [
     icon: Calendar,
     color: 'from-orange-500/20 to-orange-600/10 border-orange-500/30',
     iconColor: 'text-orange-400',
-    available: true,
+    bonus: false,
   },
   {
     id: 4, slug: 'platform-walkthrough',
@@ -38,7 +38,7 @@ const courses = [
     icon: Video,
     color: 'from-blue-500/20 to-blue-600/10 border-blue-500/30',
     iconColor: 'text-blue-400',
-    available: true,
+    bonus: false,
   },
   {
     id: 5, slug: 'meta-tiktok-campaigns',
@@ -47,7 +47,7 @@ const courses = [
     icon: BarChart2,
     color: 'from-pink-500/20 to-pink-600/10 border-pink-500/30',
     iconColor: 'text-pink-400',
-    available: true,
+    bonus: true,
   },
   {
     id: 6, slug: 'script-to-screen',
@@ -56,7 +56,7 @@ const courses = [
     icon: Zap,
     color: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30',
     iconColor: 'text-yellow-400',
-    available: true,
+    bonus: true,
   },
   {
     id: 7, slug: 'product-lifestyle-ugc',
@@ -65,7 +65,7 @@ const courses = [
     icon: Layers,
     color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/30',
     iconColor: 'text-cyan-400',
-    available: true,
+    bonus: true,
   },
 ]
 
@@ -104,16 +104,21 @@ export default function CoursePage() {
             const Icon = course.icon
             const inner = (
               <div className={`p-6 bg-gradient-to-br ${course.color} border rounded-2xl transition-all relative h-full flex flex-col hover:scale-[1.02] group cursor-pointer`}>
+                {course.bonus && (
+                  <div className="absolute top-4 right-4">
+                    <span className="bg-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-full uppercase tracking-wide">Bonus</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center ${course.iconColor}`}>
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Course {course.id}</span>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Module {course.id}</span>
                 </div>
                 <h3 className="font-black text-white text-lg leading-tight mb-3">{course.title}</h3>
                 <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-4">{course.description}</p>
                 <div className={`text-sm font-semibold ${course.iconColor} group-hover:translate-x-1 transition-transform`}>
-                  Open Course →
+                  Open Module →
                 </div>
               </div>
             )
