@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Layers, Home } from 'lucide-react'
+import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Layers, Home, DollarSign } from 'lucide-react'
 
 const courses = [
   {
@@ -65,6 +65,15 @@ const courses = [
     icon: Layers,
     color: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/30',
     iconColor: 'text-cyan-400',
+    bonus: true,
+  },
+  {
+    id: 8, slug: 'agency-blueprint',
+    title: 'The AI UGC Agency Blueprint',
+    description: 'Turn your Blobbi skills into a $500–$2,000/month retainer service. Packages, outreach, delivery, and scaling.',
+    icon: DollarSign,
+    color: 'from-red-500/20 to-red-600/10 border-red-500/30',
+    iconColor: 'text-red-400',
     bonus: true,
   },
 ]
