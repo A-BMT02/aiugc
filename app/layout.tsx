@@ -2,6 +2,9 @@ import { AuthProvider } from '../contexts/AuthContext'
 import Script from 'next/script'
 import './globals.css'
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://blobbi.ai'),
@@ -64,7 +67,7 @@ export default function RootLayout({ children } : any) {
           `}
         </Script>
       </head>
-      <body className="bg-black text-white">
+      <body className={`${inter.className} bg-black text-white`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

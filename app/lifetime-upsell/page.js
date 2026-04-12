@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, X, Zap, Shield, Clock, Star, AlertTriangle, ChevronRight } from 'lucide-react'
-import { loadStripe } from '@stripe/stripe-js'
+import { Clock, Check, Zap, Calendar, Video, Headphones } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
-const PRICE_ID = 'price_1TLABeROztKsDOlaSDDg6gog' // $197/year Growth Special
+const PRICE_ID = 'price_1TLABeROztKsDOlaSDDg6gog'
 
 export default function LifetimeUpsellPage() {
   const [loading, setLoading] = useState(false)
@@ -19,33 +18,27 @@ export default function LifetimeUpsellPage() {
         process.env.NEXT_PUBLIC_SUPABASE_URL,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       )
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session) {
+      let session = null
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) throw error
+        session = data.session
+      } catch {
+        await supabase.auth.signOut()
         router.push('/login?redirect=/lifetime-upsell')
         return
       }
+      if (!session) { router.push('/login?redirect=/lifetime-upsell'); return }
 
       const res = await fetch('/api/stripe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          priceId: PRICE_ID,
-          planName: 'growth',
-        }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ priceId: PRICE_ID, planName: 'growth' }),
       })
-
       const data = await res.json()
-      if (data.url) {
-        window.location.href = data.url
-      } else {
-        throw new Error(data.error || 'Checkout failed')
-      }
-    } catch (err) {
-      console.error(err)
+      if (data.url) window.location.href = data.url
+      else throw new Error(data.error || 'Checkout failed')
+    } catch {
       alert('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
@@ -53,241 +46,211 @@ export default function LifetimeUpsellPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans">
+    <div className="min-h-screen text-white" style={{ background: 'linear-gradient(160deg, #140826 0%, #1c0f3a 40%, #0e1830 100%)' }}>
 
-      {/* Top bar */}
-      <div className="bg-gradient-to-r from-red-600 to-orange-500 text-white text-center py-2.5 px-4 text-sm font-bold tracking-wide">
-        ⚡ FINAL OFFER &nbsp;•&nbsp; One-Time Annual Payment &nbsp;•&nbsp; Won't See This Price Again
-      </div>
+      {/* Dot pattern */}
+      <div className="fixed inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-      {/* Hero */}
-      <div className="max-w-3xl mx-auto px-5 pt-12 pb-6 text-center">
-        <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-6">
-          <Star className="w-3.5 h-3.5" /> Special Upgrade Offer
-        </div>
-        <h1 className="text-4xl md:text-5xl font-black leading-tight mb-5">
-          Get A <span className="text-yellow-400">Full Year</span> of Blobbi<br />
-          Growth Plan for Just{' '}
-          <span className="bg-green-500 text-black px-2 rounded-md">$197</span>
-        </h1>
-        <p className="text-gray-400 text-lg leading-relaxed max-w-xl mx-auto">
-          This is your only chance to lock in the Growth plan for an entire year at this price. Once you leave this page, this offer is gone forever.
-        </p>
-      </div>
+      <div className="relative z-10 max-w-7xl mx-auto py-8 px-4">
 
-      {/* Price card */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <div className="relative bg-gradient-to-br from-green-500/10 to-green-600/5 border-2 border-green-500 rounded-3xl p-7 overflow-hidden">
-          <div className="absolute top-0 left-0 bg-green-500 text-black text-xs font-black px-4 py-1.5 rounded-br-xl uppercase tracking-wider">
-            Yearly Deal
+        {/* ── HEADER ── */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-2 rounded-full text-base font-bold mb-4 animate-pulse">
+            <Clock className="w-5 h-5" /> FINAL OFFER — THIS PAGE DISAPPEARS IN MOMENTS
           </div>
-          <div className="flex items-center justify-between mt-4">
-            <div>
-              <p className="text-white font-black text-xl mb-0.5">Blobbi Growth — Full Year</p>
-              <p className="text-gray-400 text-sm">Never lose access. Locked in for 12 months.</p>
-            </div>
-            <div className="text-right">
-              <p className="text-gray-500 line-through text-lg">$708</p>
-              <p className="text-green-400 font-black text-5xl leading-none">$197</p>
-              <div className="bg-green-500/20 border border-green-500/40 text-green-400 text-xs font-bold px-2 py-0.5 rounded-full mt-1">
-                ONE YEAR • 72% OFF
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* What you get */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <h2 className="text-2xl font-black text-center mb-8">Here's Everything You're Getting:</h2>
-
-        <div className="space-y-5">
-
-          {/* Item 1 */}
-          <div className="flex gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-            <div className="w-11 h-11 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0 text-green-400 font-black text-lg">1</div>
-            <div>
-              <p className="font-black text-white text-lg mb-1">Full Year of Blobbi Growth Access</p>
-              <p className="text-gray-400 text-sm leading-relaxed mb-3">The same tool used to create every AI UGC video in this course. Locked in for 12 months — no monthly billing, no surprises.</p>
-              <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                <Check className="w-4 h-4" /> Save $511 vs paying monthly
-              </div>
-            </div>
-          </div>
-
-          {/* Item 2 */}
-          <div className="flex gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-            <div className="w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 text-blue-400 font-black text-lg">2</div>
-            <div>
-              <p className="font-black text-white text-lg mb-1">11 Minutes of AI UGC Video Per Month</p>
-              <p className="text-gray-400 text-sm leading-relaxed mb-3">That's 132 minutes of AI-generated content over the year — enough to run ads, build organic content, and test dozens of hooks.</p>
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                  <Check className="w-4 h-4" /> Multiple Actors + Custom Actor
-                </div>
-                <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                  <Check className="w-4 h-4" /> Product Holding + UGC Studio + AI Editor
-                </div>
-                <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                  <Check className="w-4 h-4" /> Multiple languages included
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Item 3 */}
-          <div className="flex gap-4 bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-            <div className="w-11 h-11 rounded-xl bg-purple-500/20 flex items-center justify-center shrink-0 text-purple-400 font-black text-lg">3</div>
-            <div>
-              <p className="font-black text-white text-lg mb-1">Priority Support for 12 Months</p>
-              <p className="text-gray-400 text-sm leading-relaxed mb-2">Direct access to our team for any questions — software setup, content strategy, technical issues.</p>
-              <div className="flex items-center gap-2 text-green-400 text-sm font-semibold">
-                <Check className="w-4 h-4" /> Value: $197 — Included FREE
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Price CTA block */}
-      <div className="max-w-2xl mx-auto px-5 mb-10 text-center">
-        <p className="text-gray-500 text-sm uppercase tracking-widest mb-1">Just</p>
-        <p className="text-7xl font-black text-white mb-1">$197</p>
-        <p className="text-gray-500 line-through mb-6">Normally $708/year</p>
-        <button
-          onClick={handleCheckout}
-          disabled={loading}
-          className="w-full py-5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black text-xl rounded-2xl transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
-        >
-          {loading ? 'Processing...' : 'YES! Lock In My $197 Yearly Plan →'}
-        </button>
-        <p className="text-gray-500 text-xs mt-3">One annual payment of $197 • Save $511 • Renews at $197/year</p>
-      </div>
-
-      {/* Comparison table */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <h2 className="text-2xl font-black text-center mb-7">Monthly Subscriber vs Annual Owner</h2>
-        <div className="grid grid-cols-2 gap-4">
-
-          {/* Monthly */}
-          <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <X className="w-5 h-5 text-red-400" />
-              <p className="font-black text-red-400">Monthly Subscriber</p>
-            </div>
-            <ul className="space-y-3">
-              {[
-                'Pay $69 every single month',
-                '$828/year total cost',
-                'Lose access if you cancel',
-                'Price can increase anytime',
-                'Always at risk of losing progress',
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-400">
-                  <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" /> {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Annual */}
-          <div className="bg-green-500/5 border border-green-500/30 rounded-2xl p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <Check className="w-5 h-5 text-green-400" />
-              <p className="font-black text-green-400">Annual Owner</p>
-            </div>
-            <ul className="space-y-3">
-              {[
-                'Pay $197 once per year',
-                'Save $511 immediately',
-                'Locked in for 12 months',
-                'Price guaranteed for the year',
-                'Focus on results, not billing',
-              ].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-gray-300">
-                  <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" /> {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Why annual beats monthly */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
-          <p className="font-black text-white text-lg mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-400" /> Why Annual Beats Monthly Every Time
-          </p>
-          <ul className="space-y-3">
-            {[
-              { title: 'No monthly anxiety', text: 'You\'re locked in for a year — just focus on creating and growing.' },
-              { title: 'Massive cost saving', text: 'You\'re paying $16.42/month instead of $69/month. That\'s money back in your pocket every single month.' },
-              { title: 'Consistency wins', text: 'The brands making money with AI UGC are the ones creating consistently. Annual access forces that habit.' },
-              { title: 'We handle everything', text: 'Updates, new features, actor additions — all included. You just create.' },
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm">
-                <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-                <span className="text-gray-300"><span className="text-white font-bold">{item.title} —</span> {item.text}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Urgency */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-6 text-center">
-          <AlertTriangle className="w-8 h-8 text-orange-400 mx-auto mb-3" />
-          <p className="font-black text-orange-400 text-lg mb-2">This Offer Expires When You Leave This Page</p>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            This is NOT available anywhere else at this price. Once you navigate away, this offer disappears and the Growth plan goes back to full price. There are no second chances, no coupon codes, and no way to get back to this page at this price.
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+            <span className="text-yellow-300">Get A FULL YEAR</span>{' '}
+            <span className="text-white">of The AI Software We Use In The Course —</span>{' '}
+            <span className="text-yellow-300">For Just $354</span>
+          </h1>
+          <p className="text-2xl md:text-3xl text-white font-semibold max-w-4xl mx-auto">
+            This is your only chance to lock in the Growth plan for an entire year at this price. Once you leave, this offer is gone forever.
           </p>
         </div>
-      </div>
 
-      {/* Savings callout */}
-      <div className="max-w-2xl mx-auto px-5 mb-10">
-        <div className="bg-gradient-to-r from-green-500/10 to-green-600/5 border border-green-500/30 rounded-2xl p-6 text-center">
-          <p className="text-gray-400 text-sm mb-1">$708 Regular Price — $197 Today = <span className="text-green-400 font-bold">$511 in Savings</span></p>
-          <p className="text-4xl font-black text-white mb-1">You're Saving $511 Right Now</p>
-          <p className="text-gray-500 text-sm">That's 72% off the standard yearly price</p>
+        {/* ── BIG WHITE CARD ── */}
+        <div className="rounded-[2rem] overflow-hidden bg-white mb-8 shadow-2xl">
+
+          {/* Card header — gradient */}
+          <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-8 md:p-10 text-white">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex-1 text-center md:text-left">
+                <div className="inline-block bg-yellow-400 text-black text-sm font-bold px-4 py-1.5 rounded-full mb-4">
+                  🔥 YEARLY DEAL
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black mb-3">Blobbi Growth — Full Year Access</h2>
+                <p className="text-white/90 text-xl">Never pay monthly again. Locked in for 12 months.</p>
+              </div>
+              <div className="text-center w-full md:w-auto">
+                <div className="text-lg line-through opacity-75 mb-1">Regular price $828/year</div>
+                <div className="text-6xl md:text-7xl font-black mb-2">$354</div>
+                <div className="text-base bg-yellow-400 text-black font-bold px-5 py-2 rounded-full inline-block">ONE YEAR • 57% OFF</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card body — white */}
+          <div className="p-8 bg-white">
+
+            <h3 className="text-3xl font-bold mb-8 text-black text-center">Here's Everything You're Getting:</h3>
+
+            <div className="space-y-6 mb-10 -mx-4">
+
+              {/* Feature 1 */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-[2rem] p-6">
+                <div className="flex flex-col md:flex-row items-start gap-4">
+                  <div className="bg-blue-500 rounded-full p-3 mx-auto md:mx-0 md:mt-1">
+                    <Calendar className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h4 className="font-black text-2xl text-black mb-2">Full Year of Blobbi Growth Access</h4>
+                    <p className="text-gray-700 text-lg mb-3">The same AI UGC tool used to create every video in this course. Locked in for 12 months — no monthly billing, no surprises, no losing access.</p>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-base text-green-700 font-bold">
+                      <Check className="w-5 h-5" /> Save $474 vs paying monthly ($69/mo × 12 = $828)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="bg-purple-50 border-2 border-purple-200 rounded-[2rem] p-6">
+                <div className="flex flex-col md:flex-row items-start gap-4">
+                  <div className="bg-purple-500 rounded-full p-3 mx-auto md:mx-0 md:mt-1">
+                    <Video className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h4 className="font-black text-2xl text-black mb-2">20+ Videos Per Month</h4>
+                    <p className="text-gray-700 text-lg mb-3">That's 240+ AI-generated videos over the year — enough to run paid ads, build organic content, and test dozens of hooks every single month.</p>
+                    <div className="bg-purple-100 rounded-[1.5rem] p-4 mb-3">
+                      <p className="text-base font-bold text-purple-900 mb-2">📹 What's included:</p>
+                      <p className="text-base text-purple-800">Multiple Actors + Custom Actor + Product Holding</p>
+                      <p className="text-base text-purple-800 font-bold">UGC Studio + AI Editor + Multiple Languages</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="bg-orange-50 border-2 border-orange-200 rounded-[2rem] p-6">
+                <div className="flex flex-col md:flex-row items-start gap-4">
+                  <div className="bg-orange-500 rounded-full p-3 mx-auto md:mx-0 md:mt-1">
+                    <Headphones className="w-7 h-7 text-white" />
+                  </div>
+                  <div className="flex-1 text-center md:text-left">
+                    <h4 className="font-black text-2xl text-black mb-2">Priority Support for 12 Months</h4>
+                    <p className="text-gray-700 text-lg mb-3">Get direct access to our team for ANY questions. Software setup, content strategy, technical issues — we've got you covered for the full year.</p>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-base text-green-700 font-bold">
+                      <Check className="w-5 h-5" /> Value: $354 (Included FREE)
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Center price */}
+            <div className="text-center my-10">
+              <div className="text-xl text-gray-400 mb-2">JUST</div>
+              <div className="text-7xl font-bold text-gray-700">$354</div>
+              <div className="text-xl text-gray-400 line-through mt-2">Usually $828/year</div>
+            </div>
+
+            {/* Comparison */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-200 rounded-[2rem] p-6 mb-8 shadow-lg -mx-4">
+              <h3 className="text-2xl md:text-3xl font-bold mb-6 text-center text-black">Monthly Subscriber vs Annual Owner</h3>
+              <div className="grid grid-cols-2 gap-4 md:gap-8">
+                <div className="space-y-3">
+                  <h4 className="font-bold text-red-600 text-xl mb-3">❌ Monthly Subscriber:</h4>
+                  <ul className="space-y-3 text-gray-800 text-base">
+                    <li>• Pay $69 every single month</li>
+                    <li>• $828/year forever</li>
+                    <li>• Lose access if you cancel</li>
+                    <li>• Price can increase anytime</li>
+                    <li>• No passive income potential</li>
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-bold text-green-600 text-xl mb-3">✅ Annual Owner:</h4>
+                  <ul className="space-y-3 text-gray-800 text-base">
+                    <li>• Pay $354 ONE TIME per year</li>
+                    <li>• Save $474 immediately</li>
+                    <li>• Locked in for 12 months</li>
+                    <li>• Price guaranteed all year</li>
+                    <li>• Just focus on creating</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Why annual wins */}
+            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-[2rem] p-6 mb-8 -mx-4">
+              <h3 className="text-2xl font-black text-yellow-900 mb-4 text-center">⚡ Why Annual Beats Monthly Every Time</h3>
+              <div className="space-y-4">
+                {[
+                  { t: 'No Monthly Anxiety', d: "You're locked in for a year — just focus on creating content and growing your business." },
+                  { t: 'Massive Cost Saving', d: "You're paying $29.50/month instead of $69/month. Real money back in your pocket every single month." },
+                  { t: 'Consistency Wins', d: "The brands making money with AI UGC create consistently. Annual access forces that habit." },
+                  { t: 'We Handle Everything', d: 'Updates, new features, new actors, hosting, support — you just create.' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                    <p className="text-gray-800 text-lg"><span className="font-bold">{item.t}:</span> {item.d}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Urgency */}
+            <div className="bg-red-50 border-2 border-red-500 rounded-[2rem] p-6 mb-8 -mx-4">
+              <h3 className="text-2xl font-bold text-red-700 mb-2 text-center">⚠️ This Offer Expires When You Leave This Page</h3>
+              <p className="text-center text-red-600 text-lg mb-3">
+                This is the ONLY time you'll see the Growth plan at this price.<br />
+                After today, it goes back to $828/year (if we even offer this deal again).
+              </p>
+              <div className="bg-white rounded-[2rem] p-5 text-center">
+                <p className="text-3xl font-black text-red-700">You're Saving $474 Right Now</p>
+                <p className="text-base text-gray-600 mt-1">$828 Regular Price — $354 Today Only = $474 Savings</p>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="space-y-4 -mx-4">
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-8 px-4 rounded-[2rem] shadow-xl transform hover:scale-105 transition-all min-h-[160px] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
+              >
+                <div className="flex flex-col items-center justify-center gap-3 w-full">
+                  <div className="flex items-center gap-3 justify-center w-full text-2xl md:text-3xl">
+                    <Zap className="w-7 h-7 flex-shrink-0" />
+                    <div className="text-center leading-relaxed">
+                      {loading ? 'Processing...' : <>YES! Give Me The Full Year<br />of Blobbi Growth for $354</>}
+                    </div>
+                  </div>
+                  <div className="text-base md:text-lg font-normal opacity-90 text-center">
+                    One annual payment of $354<br />(Save $474 • Instant access • Locked in for 12 months)
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full text-gray-500 underline hover:text-gray-700 text-base py-4 px-4 cursor-pointer"
+              >
+                No thanks, I'll pay full monthly price instead
+              </button>
+            </div>
+
+          </div>
         </div>
-      </div>
 
-      {/* Final CTA */}
-      <div className="max-w-2xl mx-auto px-5 pb-16 text-center">
-        <button
-          onClick={handleCheckout}
-          disabled={loading}
-          className="w-full py-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-black text-2xl rounded-2xl transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-green-500/40 disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 mb-3"
-        >
-          {loading ? 'Processing...' : 'YES! Give Me The $197 Yearly Plan →'}
-        </button>
-        <p className="text-gray-500 text-xs mb-8">One annual payment of $197 • Cancel anytime • Instant access</p>
-
-        <a
-          href="/dashboard"
-          className="text-gray-600 text-sm underline hover:text-gray-400 transition-colors"
-        >
-          No thanks, I'll pay full price monthly
-        </a>
-
-        {/* Security badges */}
-        <div className="flex items-center justify-center gap-6 mt-10 pt-8 border-t border-white/10">
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-            <Shield className="w-4 h-4" /> 100% Secure Checkout
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-            <Zap className="w-4 h-4" /> Instant Access
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-            <Clock className="w-4 h-4" /> Limited Time Offer
-          </div>
+        {/* Footer */}
+        <div className="text-center mt-8">
+          <p className="text-white text-xl font-bold mb-2">🔒 100% Secure Checkout • Instant Access</p>
+          <p className="text-white/80 text-base">Once you leave this page, this offer is GONE forever</p>
         </div>
-        <p className="text-gray-600 text-xs mt-4">Once you leave this page, this offer will no longer be available at this price.</p>
-      </div>
 
+      </div>
     </div>
   )
 }
