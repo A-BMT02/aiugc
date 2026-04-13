@@ -90,7 +90,7 @@ export default function LifetimeUpsellPage() {
                 <p className="text-gray-400 text-sm">Everything you need to create and scale AI UGC content.</p>
               </div>
               <div className="text-center">
-                <div className="text-sm text-gray-500 line-through mb-1">Regular $69/month</div>
+                <div className="text-sm text-gray-500 line-through mb-1">Regular $97/month</div>
                 <div className="text-5xl md:text-6xl font-black text-white mb-1">$47</div>
                 <div className="text-sm text-gray-400">/month</div>
                 <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/20 border border-green-500/40 rounded-full text-green-400 text-xs font-bold">
@@ -115,7 +115,7 @@ export default function LifetimeUpsellPage() {
                   <h4 className="font-bold text-base mb-1">Full Blobbi Growth Access</h4>
                   <p className="text-gray-400 text-sm leading-relaxed">The same AI UGC tool used to create every video in this course — no restrictions, no limits on features.</p>
                   <div className="flex items-center gap-1.5 mt-2 text-green-400 text-xs font-semibold">
-                    <Check className="w-3.5 h-3.5" /> Save $22/month vs regular pricing
+                    <Check className="w-3.5 h-3.5" /> Save $50/month vs regular pricing
                   </div>
                 </div>
               </div>
@@ -159,7 +159,7 @@ export default function LifetimeUpsellPage() {
             <div className="text-center py-6 border-t border-white/10">
               <div className="text-sm text-gray-500 mb-1">YOUR PRICE TODAY</div>
               <div className="text-5xl font-black mb-1">$47</div>
-              <div className="text-gray-500 text-sm line-through">Usually $69/month</div>
+              <div className="text-gray-500 text-sm line-through">Usually $97/month</div>
             </div>
 
             {/* What's included */}
@@ -188,7 +188,7 @@ export default function LifetimeUpsellPage() {
               <div className="space-y-3">
                 {[
                   { t: 'Scale Without Limits', d: "3 videos/month won't build a business. 20+ gives you the volume to test, iterate, and win." },
-                  { t: 'Immediate Cost Saving', d: '$47 instead of $69 — that\'s $22 back in your pocket every month you stay on Growth.' },
+                  { t: 'Immediate Cost Saving', d: '$47 instead of $97 — that\'s $50 back in your pocket every month you stay on Growth.' },
                   { t: 'Consistency Drives Results', d: 'The brands winning with AI UGC create constantly. Growth plan gives you the tools to stay consistent.' },
                   { t: 'We Handle Everything', d: 'Updates, new features, new actors, hosting, support — you just focus on creating.' },
                 ].map((item, i) => (
@@ -205,11 +205,11 @@ export default function LifetimeUpsellPage() {
               <h3 className="text-base font-bold text-red-400 mb-2">This Offer Expires When You Leave</h3>
               <p className="text-gray-400 text-sm mb-3">
                 This is the ONLY time you'll see the Growth plan at $47/month.<br />
-                After this, it goes back to $69/month.
+                After this, it goes back to $97/month.
               </p>
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
-                <p className="text-lg font-black text-white">You're Saving $22/Month Right Now</p>
-                <p className="text-gray-500 text-xs mt-0.5">$69 Regular Price — $47 Today Only</p>
+                <p className="text-lg font-black text-white">You're Saving $50/Month Right Now</p>
+                <p className="text-gray-500 text-xs mt-0.5">$97 Regular Price — $47 Today Only</p>
               </div>
             </div>
 
@@ -226,7 +226,7 @@ export default function LifetimeUpsellPage() {
                     <span>{loading ? 'Processing...' : 'YES! Get Growth for $47/Month'}</span>
                   </div>
                   <div className="text-sm font-normal opacity-80">
-                    Save $22/month • Instant access • Cancel anytime
+                    Save $50/month • Instant access • Cancel anytime
                   </div>
                 </div>
               </button>
