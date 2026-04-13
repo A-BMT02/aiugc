@@ -162,31 +162,24 @@ export default function LifetimeUpsellPage() {
               <div className="text-gray-500 text-sm line-through">Usually $69/month</div>
             </div>
 
-            {/* Comparison */}
+            {/* What's included */}
             <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
-              <h3 className="text-base font-bold mb-4 text-center">Free Plan vs Growth Plan</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-bold text-red-400 text-sm mb-3">Free Plan</h4>
-                  <ul className="space-y-2 text-gray-400 text-sm">
-                    <li>• 3 videos/month</li>
-                    <li>• Limited actors</li>
-                    <li>• No product holding</li>
-                    <li>• Basic support only</li>
-                    <li>• No AI Editor access</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-green-400 text-sm mb-3">Growth — $47/mo</h4>
-                  <ul className="space-y-2 text-gray-300 text-sm">
-                    <li>• 20+ videos/month</li>
-                    <li>• Full actor library</li>
-                    <li>• Product holding</li>
-                    <li>• Priority support</li>
-                    <li>• Full AI Editor access</li>
-                  </ul>
-                </div>
-              </div>
+              <h3 className="text-base font-bold mb-4 text-center">What's Included in Growth</h3>
+              <ul className="space-y-2.5">
+                {[
+                  '20+ AI-generated videos per month',
+                  'Full actor library + custom actor',
+                  'Product holding & interaction',
+                  'UGC Studio + AI Editor',
+                  'Multi-language support',
+                  'Priority support',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2.5 text-gray-300 text-sm">
+                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* Why upgrade */}
