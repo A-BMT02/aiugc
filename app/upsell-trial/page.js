@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CircleCheckBig, Loader2, AlertCircle, Zap, Video, Headphones, BookOpen } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
-export default function UpsellTrialPage() {
+function UpsellTrialContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
@@ -245,5 +245,13 @@ export default function UpsellTrialPage() {
 
       </div>
     </div>
+  )
+}
+
+export default function UpsellTrialPage() {
+  return (
+    <Suspense>
+      <UpsellTrialContent />
+    </Suspense>
   )
 }
