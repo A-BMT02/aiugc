@@ -124,8 +124,8 @@ export default function CheckoutPage() {
       setError(stripeError.message)
       setLoading(false)
     } else if (paymentIntent.status === 'succeeded') {
-      setSucceeded(true)
       setLoading(false)
+      window.location.href = 'https://www.blobbi.ai/lifetime-upsell'
     }
   }
 
