@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CircleCheckBig, Loader2, AlertCircle, Zap, Video, Headphones, BookOpen } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
 export default function UpsellTrialPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const email = searchParams.get('email') || ''
+  const sessionId = searchParams.get('session_id') || ''
+
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -34,8 +38,21 @@ export default function UpsellTrialPage() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       )
 
-      const { error: updateError } = await supabase.auth.updateUser({ password })
-      if (updateError) throw updateError
+      // Create the account
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
+      if (signUpError) throw signUpError
+
+      const userId = data.user?.id
+      if (!userId) throw new Error('Account creation failed. Please try again.')
+
+      // If they paid the upsell, activate the subscription
+      if (sessionId) {
+        await fetch('/api/activate-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, userId }),
+        })
+      }
 
       router.push('/app/course')
     } catch (err) {
@@ -70,7 +87,7 @@ export default function UpsellTrialPage() {
             </span>
           </h1>
           <p className="text-sm md:text-base text-gray-400 max-w-xl mx-auto leading-relaxed">
-            You've got full access to everything you purchased today — the course and your Blobbi Growth subscription at <span className="text-white font-semibold">$47/month</span>.
+            You've got full access to everything you purchased today. Set your password below to access the course.
           </p>
         </div>
 
@@ -97,9 +114,9 @@ export default function UpsellTrialPage() {
               <p className="text-green-400 text-xs mb-1 font-semibold">Blobbi Growth Subscription</p>
               <p className="text-white font-semibold text-sm flex items-center gap-2">
                 <CircleCheckBig className="w-4 h-4 text-green-400 flex-shrink-0" />
-                Active — $47/month
+                {sessionId ? 'Active — $47/month' : 'Not activated'}
               </p>
-              <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>
+              {sessionId && <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>}
             </div>
           </div>
 
@@ -127,7 +144,9 @@ export default function UpsellTrialPage() {
             <Lock className="w-4 h-4 text-green-400" />
             Set Your Password to Access the Course
           </h3>
-          <p className="text-gray-500 text-xs mb-5">Minimum 8 characters</p>
+          <p className="text-gray-500 text-xs mb-5">
+            Account: <span className="text-gray-400">{email}</span> · Minimum 8 characters
+          </p>
 
           {error && (
             <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-3 flex items-start gap-2.5">
@@ -206,11 +225,13 @@ export default function UpsellTrialPage() {
         </div>
 
         {/* ── BILLING INFO ── */}
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 text-center">
-          <p className="text-gray-500 text-xs leading-relaxed">
-            <span className="text-gray-300 font-semibold">Billing:</span> $47/month starting today. Cancel anytime. You'll keep access to everything you ordered today.
-          </p>
-        </div>
+        {sessionId && (
+          <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 text-center">
+            <p className="text-gray-500 text-xs leading-relaxed">
+              <span className="text-gray-300 font-semibold">Billing:</span> $47/month starting today. Cancel anytime. You'll keep access to everything you ordered today.
+            </p>
+          </div>
+        )}
 
         {/* ── HELP ── */}
         <div className="text-center">

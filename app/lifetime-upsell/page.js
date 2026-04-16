@@ -1,39 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Clock, Check, Zap, Calendar, Video, Headphones, Shield, Star } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-
-const PRICE_ID = 'price_1TLABeROztKsDOlaSDDg6gog'
 
 export default function LifetimeUpsellPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const email = searchParams.get('email') || ''
 
   const handleCheckout = async () => {
     setLoading(true)
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      )
-      let session = null
-      try {
-        const { data, error } = await supabase.auth.getSession()
-        if (error) throw error
-        session = data.session
-      } catch {
-        await supabase.auth.signOut()
-        router.push('/login?redirect=/lifetime-upsell')
-        return
-      }
-      if (!session) { router.push('/login?redirect=/lifetime-upsell'); return }
-
-      const res = await fetch('/api/stripe', {
+      const res = await fetch('/api/upsell-checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ priceId: PRICE_ID, planName: 'growth' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
@@ -232,7 +215,7 @@ export default function LifetimeUpsellPage() {
               </button>
 
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push(`/upsell-trial?email=${encodeURIComponent(email)}`)}
                 className="w-full text-gray-600 hover:text-gray-400 text-sm py-3 px-4 cursor-pointer transition-colors"
               >
                 No thanks, I'll miss out on this one-time offer

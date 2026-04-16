@@ -100,8 +100,9 @@ export async function POST(req: NextRequest) {
         const planName = session.metadata?.plan_name
 
         if (!userId || !planName) {
-          console.error('❌ Missing metadata in session:', { userId, planName })
-          return NextResponse.json({ error: 'Missing metadata' }, { status: 400 })
+          // Upsell checkout sessions have no user_id — handled by /api/activate-subscription
+          console.log('ℹ️ No user_id in session metadata, skipping (upsell flow)')
+          return NextResponse.json({ received: true })
         }
 
         console.log('👤 Processing for user:', userId, 'Plan:', planName)
