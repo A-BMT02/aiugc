@@ -77,7 +77,7 @@ export default function UpsellTrialPage() {
         {/* ── NOTICE CARD ── */}
         <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 mb-6">
           <p className="text-green-100 text-sm leading-relaxed">
-            <span className="font-bold text-green-400">Important:</span> You can cancel your Growth subscription at any time from the settings tab inside the course portal — no calls, no hassle, one click.
+            <span className="font-bold text-green-400">Important:</span> You can cancel your Growth subscription at any time.
           </p>
         </div>
 
@@ -208,7 +208,7 @@ export default function UpsellTrialPage() {
         {/* ── BILLING INFO ── */}
         <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 text-center">
           <p className="text-gray-500 text-xs leading-relaxed">
-            <span className="text-gray-300 font-semibold">Billing:</span> $47/month starting today. Cancel anytime from your dashboard settings with one click. You'll keep lifetime access to everything you ordered today.
+            <span className="text-gray-300 font-semibold">Billing:</span> $47/month starting today. Cancel anytime. You'll keep access to everything you ordered today.
           </p>
         </div>
 
@@ -216,8 +216,8 @@ export default function UpsellTrialPage() {
         <div className="text-center">
           <p className="text-gray-600 text-xs">
             Need help?{' '}
-            <a href="mailto:support@blobbi.ai" className="text-green-400 hover:text-green-300 transition font-semibold">
-              Email support@blobbi.ai
+            <a href="mailto:hello@blobbi.ai" className="text-green-400 hover:text-green-300 transition font-semibold">
+              Email hello@blobbi.ai
             </a>
           </p>
         </div>
