@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const PRICE_ID = 'price_1TLABeROztKsDOlaSDDg6gog'
+const PRICE_ID = process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_YEARLY_SPECIAL
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.blobbi.ai'
 
 export async function POST(req) {
