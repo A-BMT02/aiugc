@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CircleCheckBig, Loader2, AlertCircle, Zap, Video, Headphones, BookOpen } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
@@ -16,35 +16,59 @@ function UpsellTrialContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState('')
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  const getSupabase = () => createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+
+  const activateAndRedirect = async (userId) => {
+    if (sessionId) {
+      await fetch('/api/activate-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, userId }),
+      })
+    }
+    router.push('/app/course')
+  }
+
+  // Option 1 — check for existing session on load
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      try {
+        const supabase = getSupabase()
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          await activateAndRedirect(session.user.id)
+          return
+        }
+      } catch {}
+      setCheckingSession(false)
+    }
+    checkExistingSession()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
+    if (password.length < 8) { setError('Password must be at least 8 characters'); return }
+    if (password !== confirmPassword) { setError('Passwords do not match'); return }
 
     setLoading(true)
     try {
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      )
-
-      // Try to create account; if already exists, sign in instead
+      const supabase = getSupabase()
       let userId
+
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password })
 
       if (signUpError?.message?.toLowerCase().includes('already registered')) {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-        if (signInError) throw new Error('Account already exists. Please check your password.')
+        if (signInError) throw new Error('Account already exists — try signing in with Google instead.')
         userId = signInData.user?.id
       } else {
         if (signUpError) throw signUpError
@@ -52,22 +76,38 @@ function UpsellTrialContent() {
       }
 
       if (!userId) throw new Error('Something went wrong. Please try again.')
-
-      // If they paid the upsell, activate the subscription
-      if (sessionId) {
-        await fetch('/api/activate-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId, userId }),
-        })
-      }
-
-      router.push('/app/course')
+      await activateAndRedirect(userId)
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  // Option 3 — Google sign-in
+  const handleGoogle = async () => {
+    setGoogleLoading(true)
+    setError('')
+    try {
+      const supabase = getSupabase()
+      const redirectTo = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}${sessionId ? `&session_id=${sessionId}` : ''}`
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      })
+      if (error) throw error
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed.')
+      setGoogleLoading(false)
+    }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+      </div>
+    )
   }
 
   return (
@@ -87,7 +127,6 @@ function UpsellTrialContent() {
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-green-500/30">
             <CircleCheckBig className="w-9 h-9 text-white" />
           </div>
-
           <h1 className="text-3xl md:text-4xl font-black tracking-tighter mb-4 leading-tight">
             How the Course &amp;{' '}
             <span className="bg-gradient-to-r from-green-400 to-green-500 bg-clip-text text-transparent">
@@ -109,7 +148,6 @@ function UpsellTrialContent() {
         {/* ── ACCOUNT DETAILS ── */}
         <div className="bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-3xl p-6 mb-6">
           <h2 className="text-base font-bold mb-5 text-center">Your Account Details</h2>
-
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
             <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
               <p className="text-green-400 text-xs mb-1 font-semibold">Course Purchase</p>
@@ -127,14 +165,12 @@ function UpsellTrialContent() {
               {sessionId && <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>}
             </div>
           </div>
-
-          {/* What's included */}
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 space-y-3">
             {[
-              { icon: BookOpen, text: 'Full lifetime access to the course' },
-              { icon: Video,     text: '20+ AI UGC videos/month with Blobbi Growth' },
-              { icon: Zap,       text: 'UGC Studio, AI Editor, product holding & more' },
-              { icon: Headphones,text: 'Priority support from our team' },
+              { icon: BookOpen,   text: 'Full lifetime access to the course' },
+              { icon: Video,      text: '20+ AI UGC videos/month with Blobbi Growth' },
+              { icon: Zap,        text: 'UGC Studio, AI Editor, product holding & more' },
+              { icon: Headphones, text: 'Priority support from our team' },
             ].map(({ icon: Icon, text }, i) => (
               <div key={i} className="flex items-center gap-3">
                 <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -164,7 +200,6 @@ function UpsellTrialContent() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Password */}
             <div>
               <label className="block text-xs font-semibold text-gray-300 mb-1.5">Password</label>
               <div className="relative">
@@ -177,17 +212,13 @@ function UpsellTrialContent() {
                   required
                   className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-green-500 focus:outline-none text-sm text-white placeholder-gray-600 transition"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="block text-xs font-semibold text-gray-300 mb-1.5">Confirm Password</label>
               <div className="relative">
@@ -200,17 +231,13 @@ function UpsellTrialContent() {
                   required
                   className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-green-500 focus:outline-none text-sm text-white placeholder-gray-600 transition"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition"
-                >
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
                   {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Password strength indicators */}
             <div className="flex gap-3 text-xs text-gray-500">
               <span className={password.length >= 8 ? 'text-green-400' : ''}>8+ chars</span>
               <span className={/[A-Z]/.test(password) ? 'text-green-400' : ''}>Uppercase</span>
@@ -218,18 +245,34 @@ function UpsellTrialContent() {
               <span className={password && password === confirmPassword ? 'text-green-400' : ''}>Passwords match</span>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Setting up your account...</>
-              ) : (
-                'Take Me To My Course'
-              )}
+            <button type="submit" disabled={loading || googleLoading}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2">
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Setting up your account...</> : 'Take Me To My Course'}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-white/10" />
+            <span className="text-xs text-gray-600">or</span>
+            <div className="flex-1 h-px bg-white/10" />
+          </div>
+
+          {/* Option 3 — Google button */}
+          <button onClick={handleGoogle} disabled={loading || googleLoading}
+            className="w-full py-3 px-4 bg-white text-black rounded-xl font-semibold flex items-center justify-center gap-3 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm">
+            {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+              <>
+                <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continue with Google
+              </>
+            )}
+          </button>
         </div>
 
         {/* ── BILLING INFO ── */}
