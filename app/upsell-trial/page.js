@@ -89,11 +89,13 @@ function UpsellTrialContent() {
     setGoogleLoading(true)
     setError('')
     try {
+      // Save upsell state so /dashboard can activate subscription after OAuth redirect
+      if (sessionId) localStorage.setItem('blobbi_upsell_session_id', sessionId)
+
       const supabase = getSupabase()
-      const redirectTo = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}${sessionId ? `&session_id=${sessionId}` : ''}`
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo },
+        options: { redirectTo: `${window.location.origin}/dashboard` },
       })
       if (error) throw error
     } catch (err) {

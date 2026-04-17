@@ -14,8 +14,18 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login')
-    } else if (user) {
-      // Redirect to history/workspaces page
+    } else if (!loading && user) {
+      // Check for pending upsell subscription (from Google OAuth on /upsell-trial)
+      const pendingSessionId = localStorage.getItem('blobbi_upsell_session_id')
+      if (pendingSessionId) {
+        localStorage.removeItem('blobbi_upsell_session_id')
+        fetch('/api/activate-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: pendingSessionId, userId: user.id }),
+        }).finally(() => router.push('/app/course'))
+        return
+      }
       router.push('/history')
     }
   }, [user, loading, router])
