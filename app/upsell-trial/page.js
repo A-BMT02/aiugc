@@ -38,12 +38,20 @@ function UpsellTrialContent() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       )
 
-      // Create the account
-      const { data, error: signUpError } = await supabase.auth.signUp({ email, password })
-      if (signUpError) throw signUpError
+      // Try to create account; if already exists, sign in instead
+      let userId
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password })
 
-      const userId = data.user?.id
-      if (!userId) throw new Error('Account creation failed. Please try again.')
+      if (signUpError?.message?.toLowerCase().includes('already registered')) {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+        if (signInError) throw new Error('Account already exists. Please check your password.')
+        userId = signInData.user?.id
+      } else {
+        if (signUpError) throw signUpError
+        userId = signUpData.user?.id
+      }
+
+      if (!userId) throw new Error('Something went wrong. Please try again.')
 
       // If they paid the upsell, activate the subscription
       if (sessionId) {
