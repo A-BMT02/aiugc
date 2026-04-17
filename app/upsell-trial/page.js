@@ -89,7 +89,8 @@ function UpsellTrialContent() {
     setGoogleLoading(true)
     setError('')
     try {
-      // Save upsell state so /dashboard can activate subscription after OAuth redirect
+      // Save upsell state so /dashboard can activate subscription + redirect to course
+      localStorage.setItem('blobbi_upsell_redirect', '1')
       if (sessionId) localStorage.setItem('blobbi_upsell_session_id', sessionId)
 
       const supabase = getSupabase()

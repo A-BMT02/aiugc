@@ -15,15 +15,21 @@ export default function DashboardPage() {
     if (!loading && !user) {
       router.push('/login')
     } else if (!loading && user) {
-      // Check for pending upsell subscription (from Google OAuth on /upsell-trial)
+      // Check for pending upsell (from Google OAuth on /upsell-trial)
+      const upsellRedirect = localStorage.getItem('blobbi_upsell_redirect')
       const pendingSessionId = localStorage.getItem('blobbi_upsell_session_id')
-      if (pendingSessionId) {
+      if (upsellRedirect) {
+        localStorage.removeItem('blobbi_upsell_redirect')
         localStorage.removeItem('blobbi_upsell_session_id')
-        fetch('/api/activate-subscription', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: pendingSessionId, userId: user.id }),
-        }).finally(() => router.push('/app/course'))
+        if (pendingSessionId) {
+          fetch('/api/activate-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: pendingSessionId, userId: user.id }),
+          }).finally(() => router.push('/app/course'))
+        } else {
+          router.push('/app/course')
+        }
         return
       }
       router.push('/history')
