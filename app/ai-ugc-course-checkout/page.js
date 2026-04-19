@@ -77,7 +77,6 @@ export default function CheckoutPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [selectedBumps, setSelectedBumps] = useState({})
-  const [addGrowth, setAddGrowth] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -104,7 +103,7 @@ export default function CheckoutPage() {
         const res = await fetch('/api/course-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, addGrowth, bumps: selectedBumps }),
+          body: JSON.stringify({ name, email, bumps: selectedBumps }),
         })
         const data = await res.json()
         if (data.error) throw new Error(data.error)
@@ -161,29 +160,7 @@ export default function CheckoutPage() {
       body: JSON.stringify({ email, name }),
     }).catch(() => {})
 
-    if (addGrowth) {
-      const pmId = typeof paymentIntent.payment_method === 'string'
-        ? paymentIntent.payment_method
-        : paymentIntent.payment_method?.id
-
-      if (pmId) {
-        try {
-          const subRes = await fetch('/api/create-growth-subscription', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ paymentMethodId: pmId, email, name }),
-          })
-          const subData = await subRes.json()
-          if (subData.subscriptionId) {
-            window.location.href = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}&subscription_id=${subData.subscriptionId}`
-            return
-          }
-        } catch {}
-      }
-      window.location.href = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}`
-    } else {
-      window.location.href = `${window.location.origin}/lifetime-upsell?email=${encodeURIComponent(email)}`
-    }
+    window.location.href = `${window.location.origin}/lifetime-upsell?email=${encodeURIComponent(email)}`
   }
 
   return (
@@ -253,17 +230,10 @@ export default function CheckoutPage() {
                   <span className="font-semibold">${b.price}.00</span>
                 </div>
               ))}
-              {addGrowth && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Blobbi Growth (7-day trial)</span>
-                  <span className="font-semibold">$0 today</span>
-                </div>
-              )}
               <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-100">
                 <span>Total today</span>
                 <span>${total}.00</span>
               </div>
-              {addGrowth && <p className="text-xs text-gray-400">Then $47/month after 7 days</p>}
             </div>
 
             {/* Trust */}
@@ -366,23 +336,6 @@ export default function CheckoutPage() {
                     ))}
                   </div>
 
-                  {/* Growth add-on */}
-                  <div onClick={() => setAddGrowth(!addGrowth)}
-                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${addGrowth ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-300 hover:border-gray-400'}`}>
-                    <div className="flex items-start gap-3">
-                      <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 ${addGrowth ? 'bg-green-500' : 'border-2 border-gray-300 bg-white'}`}>
-                        {addGrowth && <Check className="w-3 h-3 text-white" />}
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                          <span className="font-black text-sm text-gray-900">Add Blobbi Growth Platform</span>
-                          <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">7-day free trial</span>
-                        </div>
-                        <p className="text-xs text-gray-500">20+ AI UGC videos/month, UGC Studio, AI Editor &amp; more. $0 now, then $47/month after trial.</p>
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Card */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Card Details</label>
@@ -393,7 +346,7 @@ export default function CheckoutPage() {
 
                   <button type="submit" disabled={loading}
                     className="w-full py-4 bg-orange-500 hover:bg-orange-400 disabled:opacity-60 text-white font-black text-lg rounded-xl transition-all flex items-center justify-center gap-2">
-                    {loading ? 'Processing...' : `Complete Order — $${total}.00${addGrowth ? ' + Growth Trial' : ''}`}
+                    {loading ? 'Processing...' : `Complete Order — $${total}.00`}
                   </button>
 
                   <TrustRow />
