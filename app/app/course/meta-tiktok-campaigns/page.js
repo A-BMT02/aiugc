@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Home, BookOpen, Video, Clock } from 'lucide-react'
 
-const VIDEO_EMBED_URL = '' // Replace with Google Drive embed URL
+const VIDEO_EMBED_URL = 'https://drive.google.com/file/d/1plJ1PMbIouGhtpG6JkJuVtFn7VtCgVbS/preview'
 
 const SECTIONS = [
   {

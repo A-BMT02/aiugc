@@ -5,7 +5,7 @@ import { Home, BookOpen, Video, Clock } from 'lucide-react'
 
 // TODO: Replace with actual Google Drive file ID once video is shared publicly
 // Format: https://drive.google.com/file/d/FILE_ID/preview
-const VIDEO_EMBED_URL = '' // e.g. 'https://drive.google.com/file/d/YOUR_FILE_ID/preview'
+const VIDEO_EMBED_URL = 'https://drive.google.com/file/d/1UqrBshTV5fgu_e5JlhTaP6ynAKVvb18e/preview'
 
 const SECTIONS = [
   {
