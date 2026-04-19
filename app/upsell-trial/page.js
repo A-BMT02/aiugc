@@ -10,6 +10,7 @@ function UpsellTrialContent() {
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
   const sessionId = searchParams.get('session_id') || ''
+  const subscriptionId = searchParams.get('subscription_id') || ''
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -31,6 +32,12 @@ function UpsellTrialContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, userId }),
+      })
+    } else if (subscriptionId) {
+      await fetch('/api/activate-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId, userId }),
       })
     }
     router.push('/app/course')
@@ -163,9 +170,9 @@ function UpsellTrialContent() {
               <p className="text-green-400 text-xs mb-1 font-semibold">Blobbi Growth Subscription</p>
               <p className="text-white font-semibold text-sm flex items-center gap-2">
                 <CircleCheckBig className="w-4 h-4 text-green-400 flex-shrink-0" />
-                {sessionId ? 'Active — $47/month' : 'Not activated'}
+                {(sessionId || subscriptionId) ? 'Active — $47/month' : 'Not activated'}
               </p>
-              {sessionId && <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>}
+              {(sessionId || subscriptionId) && <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>}
             </div>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 space-y-3">
@@ -279,10 +286,10 @@ function UpsellTrialContent() {
         </div>
 
         {/* ── BILLING INFO ── */}
-        {sessionId && (
+        {(sessionId || subscriptionId) && (
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 text-center">
             <p className="text-gray-500 text-xs leading-relaxed">
-              <span className="text-gray-300 font-semibold">Billing:</span> $47/month starting today. Cancel anytime. You'll keep access to everything you ordered today.
+              <span className="text-gray-300 font-semibold">💳 Billing Information:</span> Trial billing: $0 now, then $47/month after 7 days. Cancel anytime from your dashboard settings with one click. You'll still maintain lifetime access to everything you ordered today.
             </p>
           </div>
         )}

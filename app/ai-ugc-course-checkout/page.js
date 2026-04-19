@@ -2,20 +2,23 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Check, Lock, Shield, Zap, Star, ArrowRight } from 'lucide-react'
+import { Check, Lock, Shield, Zap, Star, ArrowRight, ChevronDown, ChevronUp, Plus } from 'lucide-react'
 import { loadStripe } from '@stripe/stripe-js'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
-const recapItems = [
-  'AI UGC Fast-Start Course (4 video lessons)',
-  'AI UGC Ads Playbook',
-  'AI UGC Ad Script Bank — 100 done-for-you scripts',
-  '30-Day AI UGC Production Calendar',
-  'Platform walkthrough — first creative in 30 minutes',
-  'The five-part script structure that converts',
-  'Product & lifestyle UGC formats',
-  'Paid campaign setup for Meta & TikTok',
+const courseItems = [
+  'AI UGC creation tools access',
+  'Secret realism enhancers',
+  'High-converting AI script writing prompts',
+  'Avatar creation process for testing UGC at scale',
+]
+
+const whatYoullLearn = [
+  'How to create scroll-stopping AI video ads in minutes',
+  'The 5-part script structure that converts on Meta & TikTok',
+  'Product & lifestyle UGC formats that work at scale',
+  'How to launch and optimise your first paid AI UGC campaign',
 ]
 
 const TESTIMONIAL_PHOTOS = [
@@ -38,9 +41,10 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [addGrowth, setAddGrowth] = useState(false)
+  const [showLearn, setShowLearn] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [succeeded, setSucceeded] = useState(false)
 
   const stripeRef = useRef(null)
   const cardRef = useRef(null)
@@ -57,11 +61,11 @@ export default function CheckoutPage() {
         const stripe = await stripePromise
         stripeRef.current = stripe
 
-        // Create payment intent
+        // Create payment intent (with setup_future_usage if Growth selected)
         const res = await fetch('/api/course-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email }),
+          body: JSON.stringify({ name, email, addGrowth }),
         })
         const data = await res.json()
         if (data.error) throw new Error(data.error)
@@ -123,29 +127,47 @@ export default function CheckoutPage() {
     if (stripeError) {
       setError(stripeError.message)
       setLoading(false)
-    } else if (paymentIntent.status === 'succeeded') {
+      return
+    }
+
+    if (paymentIntent.status !== 'succeeded') {
+      setError('Payment did not complete. Please try again.')
       setLoading(false)
+      return
+    }
+
+    // Send welcome email (fire and forget)
+    fetch('/api/send-course-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    }).catch(() => {})
+
+    if (addGrowth) {
+      // Create Growth subscription using the same payment method
+      const pmId = typeof paymentIntent.payment_method === 'string'
+        ? paymentIntent.payment_method
+        : paymentIntent.payment_method?.id
+
+      if (pmId) {
+        try {
+          const subRes = await fetch('/api/create-growth-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ paymentMethodId: pmId, email, name }),
+          })
+          const subData = await subRes.json()
+          if (subData.subscriptionId) {
+            window.location.href = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}&subscription_id=${subData.subscriptionId}`
+            return
+          }
+        } catch {}
+      }
+      // Fallback: go to upsell-trial without subscription
+      window.location.href = `${window.location.origin}/upsell-trial?email=${encodeURIComponent(email)}`
+    } else {
       window.location.href = `${window.location.origin}/lifetime-upsell?email=${encodeURIComponent(email)}`
     }
-  }
-
-  if (succeeded) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center px-6">
-        <div className="bg-white rounded-2xl p-12 max-w-md w-full text-center shadow-sm">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-green-500" />
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-3">You're in!</h2>
-          <p className="text-gray-500 mb-6">
-            Check <strong>{email}</strong> for your login details. Your course access is ready.
-          </p>
-          <Link href="/dashboard" className="inline-block px-8 py-4 bg-orange-500 text-white font-black rounded-xl hover:bg-orange-400 transition-all">
-            Go to Dashboard →
-          </Link>
-        </div>
-      </div>
-    )
   }
 
   return (
@@ -171,25 +193,92 @@ export default function CheckoutPage() {
       <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10">
         <div className="grid md:grid-cols-[420px_1fr] gap-6 items-start">
 
-          {/* ── LEFT: Recap panel ── */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm md:sticky md:top-6">
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Looking For A Recap?</h2>
-            <p className="text-gray-600 font-semibold mb-6 text-sm">
-              Here's everything you get with the AI UGC Fast-Start Course:
-            </p>
+          {/* ── LEFT: Order summary panel ── */}
+          <div className="bg-white rounded-2xl p-8 shadow-sm md:sticky md:top-6 space-y-6">
 
-            <ul className="space-y-3 mb-8">
-              {recapItems.map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
-                  <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                    <Check className="w-3 h-3 text-white" />
+            {/* Course contents */}
+            <div>
+              <h2 className="text-xl font-black text-gray-900 mb-1">Your Order Today</h2>
+              <p className="text-green-600 font-bold text-sm mb-4">AI UGC Fast-Start Course — $1</p>
+              <ul className="space-y-2.5 mb-4">
+                {courseItems.map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              {/* What you'll learn toggle */}
+              <button
+                onClick={() => setShowLearn(!showLearn)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-green-600 hover:text-green-500 transition-colors"
+              >
+                {showLearn ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showLearn ? 'Hide' : 'See'} what you'll learn
+              </button>
+              {showLearn && (
+                <ul className="mt-3 space-y-2 pl-1">
+                  {whatYoullLearn.map((item) => (
+                    <li key={item} className="flex items-start gap-2.5 text-sm text-gray-500">
+                      <span className="text-green-500 font-bold mt-0.5">→</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Growth add-on toggle */}
+            <div
+              onClick={() => setAddGrowth(!addGrowth)}
+              className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${addGrowth ? 'border-green-500 bg-green-50' : 'border-dashed border-gray-200 hover:border-gray-300'}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5 transition-all ${addGrowth ? 'bg-green-500' : 'border-2 border-gray-300 bg-white'}`}>
+                    {addGrowth && <Check className="w-3 h-3 text-white" />}
                   </div>
-                  {item}
-                </li>
-              ))}
-            </ul>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-black text-sm text-gray-900">Add Blobbi Growth</span>
+                      <span className="bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">7-day free trial</span>
+                    </div>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      20+ AI UGC videos/month, UGC Studio, AI Editor &amp; more.<br />
+                      $0 now, then $47/month after trial. Cancel anytime.
+                    </p>
+                  </div>
+                </div>
+                {!addGrowth && <Plus className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />}
+              </div>
+            </div>
 
-            <div className="space-y-2 mb-6">
+            {/* Totals */}
+            <div className="border-t border-gray-100 pt-4 space-y-2">
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>AI UGC Fast-Start Course</span>
+                <span className="font-semibold">$1.00</span>
+              </div>
+              {addGrowth && (
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Blobbi Growth (7-day trial)</span>
+                  <span className="font-semibold text-green-600">$0 today</span>
+                </div>
+              )}
+              <div className="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-100">
+                <span>Total today</span>
+                <span>$1.00</span>
+              </div>
+              {addGrowth && (
+                <p className="text-xs text-gray-400">Then $47/month after 7 days (cancel anytime)</p>
+              )}
+            </div>
+
+            {/* Trust */}
+            <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Shield className="w-4 h-4 text-green-500 shrink-0" />
                 30-Day Money-Back Guarantee
@@ -324,7 +413,11 @@ export default function CheckoutPage() {
                     disabled={loading}
                     className="w-full py-4 bg-orange-500 hover:bg-orange-400 disabled:opacity-60 text-white font-black text-lg rounded-xl transition-all flex items-center justify-center gap-2 mt-2"
                   >
-                    {loading ? 'Processing...' : 'Complete My Order — $1.00'}
+                    {loading
+                      ? 'Processing...'
+                      : addGrowth
+                        ? 'Complete Order — $1.00 + Growth Trial'
+                        : 'Complete My Order — $1.00'}
                   </button>
 
                   <TrustRow />

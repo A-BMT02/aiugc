@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { Home, BookOpen, Video, Clock } from 'lucide-react'
 
+// TODO: Replace with actual Google Drive file ID once video is shared publicly
+// Format: https://drive.google.com/file/d/FILE_ID/preview
+const VIDEO_EMBED_URL = '' // e.g. 'https://drive.google.com/file/d/YOUR_FILE_ID/preview'
+
 const SECTIONS = [
   {
     title: 'OPEN — HOOK',
@@ -137,6 +141,27 @@ export default function PlatformWalkthroughPage() {
             <p className="text-sm text-gray-400">The viewer should have their first AI UGC creative exported by the time this video ends.</p>
           </div>
         </div>
+      </div>
+
+      {/* Video */}
+      <div className="max-w-3xl mx-auto px-6 mb-10">
+        {VIDEO_EMBED_URL ? (
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl" style={{ paddingTop: '56.25%' }}>
+            <iframe
+              src={VIDEO_EMBED_URL}
+              className="absolute inset-0 w-full h-full"
+              allow="autoplay"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <div className="w-full rounded-2xl border border-dashed border-white/20 bg-white/[0.02] flex items-center justify-center" style={{ minHeight: '320px' }}>
+            <div className="text-center px-6">
+              <Video className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">Video coming soon</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Script */}

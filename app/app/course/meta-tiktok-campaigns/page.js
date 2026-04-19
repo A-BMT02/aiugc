@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { Home, BookOpen, Video, Clock } from 'lucide-react'
 
+const VIDEO_EMBED_URL = '' // Replace with Google Drive embed URL
+
 const SECTIONS = [
   {
     title: 'OPEN — HOOK',
@@ -136,6 +138,22 @@ export default function MetaTikTokCampaignsPage() {
             <p className="text-sm text-gray-400">Viewer has a live paid campaign running by the end of the video.</p>
           </div>
         </div>
+      </div>
+
+      {/* Video */}
+      <div className="max-w-3xl mx-auto px-6 mb-10">
+        {VIDEO_EMBED_URL ? (
+          <div className="relative w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl" style={{ paddingTop: '56.25%' }}>
+            <iframe src={VIDEO_EMBED_URL} className="absolute inset-0 w-full h-full" allow="autoplay" allowFullScreen />
+          </div>
+        ) : (
+          <div className="w-full rounded-2xl border border-dashed border-white/20 bg-white/[0.02] flex items-center justify-center" style={{ minHeight: '320px' }}>
+            <div className="text-center px-6">
+              <Video className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">Video coming soon</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Script */}

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Layers, Home, DollarSign } from 'lucide-react'
+import { BookOpen, FileText, Calendar, Video, BarChart2, Zap, Layers, Home, DollarSign, ExternalLink } from 'lucide-react'
 
 const courses = [
   {
@@ -87,8 +87,8 @@ export default function CoursePage() {
             <img src="/blobbi-logo-green500-exact.png" alt="Blobbi" className="h-7 object-contain" />
             <span className="font-black text-white">blobbi<span className="text-green-400">.</span>ai</span>
           </div>
-          <Link href="/dashboard" className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors">
-            <Home className="w-4 h-4" /> Dashboard
+          <Link href="/history" className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-400 text-black font-bold text-sm rounded-lg transition-colors">
+            <ExternalLink className="w-4 h-4" /> Open Blobbi
           </Link>
         </div>
       </div>

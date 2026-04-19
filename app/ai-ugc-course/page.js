@@ -225,8 +225,8 @@ export default function AIUGCCoursePage() {
           {/* ── BONUSES ── */}
           <div className="mt-14">
             <div className="text-center mb-12">
-              <p className="text-green-400 text-xs font-bold uppercase tracking-widest mb-3">Also included</p>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">Plus these 3 free bonuses</h2>
+              <p className="text-green-400 text-xs font-bold uppercase tracking-widest mb-3">Add-ons</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight">Get these bonuses worth over $250 when you upgrade</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
               {[
@@ -346,9 +346,9 @@ export default function AIUGCCoursePage() {
           <div className="rounded-3xl overflow-hidden border border-white/10">
             {[
               { item: 'AI UGC Fast-Start Course (4 videos)', value: '$297' },
-              { item: 'BONUS: The AI UGC Ads Playbook', value: '$97' },
-              { item: 'BONUS: AI UGC Ad Script Bank (100 scripts)', value: '$147' },
-              { item: 'BONUS: The 30-Day Production Calendar', value: '$47' },
+              { item: 'BONUS: The AI UGC Ads Playbook (optional add-on)', value: '$97' },
+              { item: 'BONUS: AI UGC Ad Script Bank (100 scripts) (optional add-on)', value: '$147' },
+              { item: 'BONUS: The 30-Day Production Calendar (optional add-on)', value: '$47' },
             ].map(({ item, value }, i, arr) => (
               <div key={item} className={`flex items-center justify-between px-7 py-4 bg-white/[0.03] ${i < arr.length - 1 ? 'border-b border-white/10' : ''}`}>
                 <div className="flex items-center gap-3 text-gray-300 text-sm">

@@ -19,24 +19,34 @@ export async function POST(req) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { sessionId, userId } = await req.json()
+    const { sessionId, subscriptionId, userId } = await req.json()
 
-    if (!sessionId || !userId) {
-      return Response.json({ error: 'sessionId and userId are required' }, { status: 400 })
+    if (!userId) {
+      return Response.json({ error: 'userId is required' }, { status: 400 })
+    }
+    if (!sessionId && !subscriptionId) {
+      return Response.json({ error: 'sessionId or subscriptionId is required' }, { status: 400 })
     }
 
-    // Retrieve and verify the Stripe checkout session
-    const session = await stripe.checkout.sessions.retrieve(sessionId)
+    let subscription
+    let planName
 
-    if (session.payment_status !== 'paid') {
-      return Response.json({ error: 'Payment not completed' }, { status: 400 })
+    if (sessionId) {
+      // Checkout Session flow
+      const session = await stripe.checkout.sessions.retrieve(sessionId)
+      if (session.payment_status !== 'paid') {
+        return Response.json({ error: 'Payment not completed' }, { status: 400 })
+      }
+      planName = session.metadata?.plan_name || 'growth'
+      subscription = await stripe.subscriptions.retrieve(session.subscription)
+    } else {
+      // Direct subscription flow (inline checkout with trial)
+      subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      if (!['active', 'trialing'].includes(subscription.status)) {
+        return Response.json({ error: 'Subscription not active' }, { status: 400 })
+      }
+      planName = subscription.metadata?.plan_name || 'growth'
     }
-
-    const planName = session.metadata?.plan_name || 'growth'
-    const creditsToAdd = PLAN_CREDITS[planName] || 120
-
-    // Retrieve subscription details
-    const subscription = await stripe.subscriptions.retrieve(session.subscription)
 
     const startDate = new Date(subscription.current_period_start * 1000).toISOString()
     const endDate = new Date(subscription.current_period_end * 1000).toISOString()
