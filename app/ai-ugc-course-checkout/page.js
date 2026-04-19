@@ -23,19 +23,19 @@ const TESTIMONIAL_PHOTOS = [
 const BUMPS = [
   {
     id: 'bump1',
-    tag: 'Add-on #1',
-    title: 'AI UGC Ad Script Bank',
+    tag: 'Bump 1',
+    title: 'AI UGC Ad Script Bank — $19',
     price: 19,
     regular: 147,
-    desc: '100 done-for-you UGC ad scripts across 9 niches — each with a hook, body script, and CTA ready to paste into Blobbi.',
+    desc: '100 done-for-you UGC ad scripts across 9 niches, each with a hook, body script, and CTA ready to paste into Blobbi.',
   },
   {
     id: 'bump2',
-    tag: 'Add-on #2',
-    title: 'AI UGC Agency Blueprint',
+    tag: 'Bump 2',
+    title: 'AI UGC Agency Blueprint — $19',
     price: 19,
     regular: 97,
-    desc: 'A complete guide to packaging and selling AI UGC as a monthly retainer service to clients.',
+    desc: 'A guide to packaging and selling AI UGC as a service to clients as a monthly retainer.',
   },
 ]
 
@@ -62,8 +62,7 @@ function BumpCard({ bump, selected, onToggle }) {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{bump.tag}</span>
-            <span className="text-xs text-gray-400 line-through">${bump.regular} value</span>
-            <span className="text-sm font-black text-orange-500">Just ${bump.price}</span>
+            <span className="text-xs text-gray-400">(regular price ${bump.regular})</span>
           </div>
           <p className="font-bold text-sm text-gray-900 mb-1">{bump.title}</p>
           <p className="text-xs text-gray-500 leading-relaxed">{bump.desc}</p>
