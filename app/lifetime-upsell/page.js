@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Clock, Check, Zap, Calendar, Video, Headphones, Shield, Star } from 'lucide-react'
+import { trackEvent } from '../../lib/pixel'
 
 function LifetimeUpsellContent() {
   const [loading, setLoading] = useState(false)
@@ -12,6 +13,7 @@ function LifetimeUpsellContent() {
 
   const handleCheckout = async () => {
     setLoading(true)
+    trackEvent('InitiateCheckout', { value: 47, currency: 'USD', content_name: 'Blobbi Growth Plan' })
     try {
       const res = await fetch('/api/upsell-checkout', {
         method: 'POST',

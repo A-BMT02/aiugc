@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Lock, Eye, EyeOff, CircleCheckBig, Loader2, AlertCircle, Zap, Video, Headphones, BookOpen } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
+import { trackEvent } from '../../lib/pixel'
 
 function UpsellTrialContent() {
   const router = useRouter()
@@ -40,6 +41,7 @@ function UpsellTrialContent() {
         body: JSON.stringify({ subscriptionId, userId }),
       })
     }
+    trackEvent('Subscribe', { value: 47, currency: 'USD', predicted_ltv: 47, content_name: 'Blobbi Growth Plan Trial' })
     router.push('/app/course')
   }
 

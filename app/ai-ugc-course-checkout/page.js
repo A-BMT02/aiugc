@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Check, Lock, Shield, Zap, Star, ArrowRight, Tag } from 'lucide-react'
 import { loadStripe } from '@stripe/stripe-js'
+import { trackEvent } from '../../lib/pixel'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
@@ -87,7 +88,14 @@ export default function CheckoutPage() {
   const bumpTotal = BUMPS.filter(b => selectedBumps[b.id]).reduce((sum, b) => sum + b.price, 0)
   const total = 1 + bumpTotal
 
-  const toggleBump = (id) => setSelectedBumps(prev => ({ ...prev, [id]: !prev[id] }))
+  const toggleBump = (id) => {
+    const isAdding = !selectedBumps[id]
+    setSelectedBumps(prev => ({ ...prev, [id]: !prev[id] }))
+    if (isAdding) {
+      const bump = BUMPS.find(b => b.id === id)
+      trackEvent('AddToCart', { content_name: bump.title, content_ids: [id], value: bump.price, currency: 'USD' })
+    }
+  }
 
   // Mount Stripe card element when entering step 2
   useEffect(() => {
@@ -136,6 +144,7 @@ export default function CheckoutPage() {
     e.preventDefault()
     if (!name.trim() || !email.trim()) { setError('Please fill in all fields.'); return }
     setError('')
+    trackEvent('InitiateCheckout', { value: 1, currency: 'USD', num_items: 1 })
     setStep(2)
   }
 
@@ -152,6 +161,16 @@ export default function CheckoutPage() {
 
     if (stripeError) { setError(stripeError.message); setLoading(false); return }
     if (paymentIntent.status !== 'succeeded') { setError('Payment did not complete. Please try again.'); setLoading(false); return }
+
+    // Track purchase
+    const addedBumps = BUMPS.filter(b => selectedBumps[b.id])
+    trackEvent('Purchase', {
+      value: total,
+      currency: 'USD',
+      content_ids: ['ai-ugc-course', ...addedBumps.map(b => b.id)],
+      content_type: 'product',
+      num_items: 1 + addedBumps.length,
+    })
 
     // Send welcome email
     fetch('/api/send-course-email', {
