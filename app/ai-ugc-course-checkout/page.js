@@ -162,21 +162,12 @@ export default function CheckoutPage() {
     if (stripeError) { setError(stripeError.message); setLoading(false); return }
     if (paymentIntent.status !== 'succeeded') { setError('Payment did not complete. Please try again.'); setLoading(false); return }
 
-    // Track purchase
+    // Send welcome email + triggers server-side CAPI Purchase event
     const addedBumps = BUMPS.filter(b => selectedBumps[b.id])
-    trackEvent('Purchase', {
-      value: total,
-      currency: 'USD',
-      content_ids: ['ai-ugc-course', ...addedBumps.map(b => b.id)],
-      content_type: 'product',
-      num_items: 1 + addedBumps.length,
-    })
-
-    // Send welcome email
     fetch('/api/send-course-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name }),
+      body: JSON.stringify({ email, name, total, bumpIds: addedBumps.map(b => b.id) }),
     }).catch(() => {})
 
     window.location.href = `${window.location.origin}/lifetime-upsell?email=${encodeURIComponent(email)}`

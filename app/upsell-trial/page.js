@@ -41,7 +41,6 @@ function UpsellTrialContent() {
         body: JSON.stringify({ subscriptionId, userId }),
       })
     }
-    trackEvent('Subscribe', { value: 47, currency: 'USD', predicted_ltv: 47, content_name: 'Blobbi Growth Plan Trial' })
     router.push('/app/course')
   }
 

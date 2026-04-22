@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { sendCapiEvent } from '../../../lib/capi'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -86,6 +87,21 @@ export async function POST(req) {
         stripe_payment_id: session.payment_intent,
         description: `${planName} subscription - upsell purchase`,
       })
+
+    // CAPI Subscribe event
+    const customerEmail = sessionId
+      ? (await stripe.checkout.sessions.retrieve(sessionId)).customer_details?.email
+      : subscription.metadata?.customer_email
+    if (customerEmail) {
+      sendCapiEvent({
+        eventName: 'Subscribe',
+        email: customerEmail,
+        value: 47,
+        currency: 'USD',
+        contentIds: ['blobbi-growth'],
+        customData: { predicted_ltv: 47 },
+      }).catch(() => {})
+    }
 
     return Response.json({ success: true, creditsAdded: creditsToAdd })
   } catch (error) {

@@ -1,11 +1,12 @@
 import { Resend } from 'resend'
+import { sendCapiEvent } from '../../../lib/capi'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req) {
   try {
-    const { email, name } = await req.json()
+    const { email, name, total = 1, bumpIds = [] } = await req.json()
     if (!email) return Response.json({ error: 'email required' }, { status: 400 })
 
     const resend = new Resend(process.env.RESEND_API_KEY)
@@ -107,6 +108,16 @@ export async function POST(req) {
 </html>
       `,
     })
+
+    // CAPI Purchase event (server-side, can't be blocked by ad blockers)
+    sendCapiEvent({
+      eventName: 'Purchase',
+      email,
+      value: total,
+      currency: 'USD',
+      contentIds: ['ai-ugc-course', ...bumpIds],
+      customData: { num_items: 1 + bumpIds.length },
+    }).catch(() => {})
 
     return Response.json({ success: true })
   } catch (error) {
