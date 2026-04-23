@@ -5,6 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Clock, Check, Zap, Calendar, Video, Headphones, Shield, Star } from 'lucide-react'
 import { trackEvent } from '../../lib/pixel'
 
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return undefined
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? decodeURIComponent(match[2]) : undefined
+}
+
 function LifetimeUpsellContent() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -20,7 +26,7 @@ function LifetimeUpsellContent() {
       const res = await fetch('/api/upsell-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, fbc: getCookie('_fbc'), fbp: getCookie('_fbp') }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url

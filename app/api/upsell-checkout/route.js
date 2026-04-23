@@ -9,7 +9,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://www.blobbi.ai'
 export async function POST(req) {
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-    const { email } = await req.json()
+    const { email, fbc, fbp } = await req.json()
 
     if (!email) {
       return Response.json({ error: 'Email is required' }, { status: 400 })
@@ -25,6 +25,8 @@ export async function POST(req) {
       metadata: {
         plan_name: 'growth',
         email,
+        ...(fbc && { fbc }),
+        ...(fbp && { fbp }),
       },
     })
 

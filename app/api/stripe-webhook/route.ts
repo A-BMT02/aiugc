@@ -103,7 +103,10 @@ export async function POST(req: NextRequest) {
         if (!userId || !planName) {
           // Upsell checkout session — fire CAPI Purchase immediately on payment confirmation
           const upsellEmail = session.customer_details?.email
-          console.log('ℹ️ Upsell checkout session, customer email:', upsellEmail)
+          const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || undefined
+          const userAgent = req.headers.get('user-agent') || undefined
+          const fbc = (session.metadata?.fbc) || undefined
+          const fbp = (session.metadata?.fbp) || undefined
           if (upsellEmail) {
             await sendCapiEvent({
               eventName: 'Purchase',
@@ -111,9 +114,9 @@ export async function POST(req: NextRequest) {
               value: (session.amount_total || 4700) / 100,
               currency: session.currency || 'usd',
               contentIds: ['blobbi-growth'],
+              fbc, fbp, ip, userAgent,
               customData: { content_name: 'Blobbi Growth Plan', predicted_ltv: 47 },
             })
-            console.log('✅ CAPI Purchase fired for upsell:', upsellEmail)
           }
           return NextResponse.json({ received: true })
         }

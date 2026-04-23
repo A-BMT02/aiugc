@@ -7,6 +7,10 @@ interface CapiEventParams {
   currency?: string
   contentIds?: string[]
   eventId?: string
+  fbc?: string
+  fbp?: string
+  ip?: string
+  userAgent?: string
   customData?: Record<string, unknown>
 }
 
@@ -17,6 +21,10 @@ export async function sendCapiEvent({
   currency = 'USD',
   contentIds = [],
   eventId,
+  fbc,
+  fbp,
+  ip,
+  userAgent,
   customData = {},
 }: CapiEventParams): Promise<void> {
   const token = process.env.META_CAPI_TOKEN
@@ -24,12 +32,18 @@ export async function sendCapiEvent({
 
   const hashedEmail = await sha256(email.toLowerCase().trim())
 
+  const userData: Record<string, unknown> = { em: [hashedEmail] }
+  if (fbc) userData.fbc = fbc
+  if (fbp) userData.fbp = fbp
+  if (ip) userData.client_ip_address = ip
+  if (userAgent) userData.client_user_agent = userAgent
+
   const event: Record<string, unknown> = {
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
     action_source: 'website',
     event_source_url: 'https://www.blobbi.ai',
-    user_data: { em: [hashedEmail] },
+    user_data: userData,
     custom_data: { value, currency, content_ids: contentIds, content_type: 'product', ...customData },
   }
   if (eventId) event.event_id = eventId

@@ -8,6 +8,11 @@ import { trackEvent } from '../../lib/pixel'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
+const getCookie = (name) => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? decodeURIComponent(match[2]) : undefined
+}
+
 const courseItems = [
   'AI UGC creation tools access',
   'Secret realism enhancers',
@@ -167,7 +172,12 @@ export default function CheckoutPage() {
     fetch('/api/send-course-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, name, total, bumpIds: addedBumps.map(b => b.id) }),
+      body: JSON.stringify({
+        email, name, total,
+        bumpIds: addedBumps.map(b => b.id),
+        fbc: getCookie('_fbc'),
+        fbp: getCookie('_fbp'),
+      }),
     }).catch(() => {})
 
     localStorage.setItem('blobbi_email', email)
