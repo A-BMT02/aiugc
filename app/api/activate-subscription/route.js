@@ -20,7 +20,9 @@ export async function POST(req) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { sessionId, subscriptionId, userId } = await req.json()
+    const body = await req.json()
+    console.log('[activate-subscription] received:', JSON.stringify(body))
+    const { sessionId, subscriptionId, userId } = body
 
     if (!userId) {
       return Response.json({ error: 'userId is required' }, { status: 400 })
@@ -35,7 +37,9 @@ export async function POST(req) {
     let paymentIntentId
 
     if (sessionId) {
+      console.log('[activate-subscription] retrieving session:', sessionId)
       const session = await stripe.checkout.sessions.retrieve(sessionId)
+      console.log('[activate-subscription] session payment_status:', session.payment_status, 'customer_email:', session.customer_details?.email)
       if (session.payment_status !== 'paid') {
         return Response.json({ error: 'Payment not completed' }, { status: 400 })
       }
@@ -44,7 +48,9 @@ export async function POST(req) {
       paymentIntentId = session.payment_intent
       subscription = await stripe.subscriptions.retrieve(session.subscription)
     } else {
+      console.log('[activate-subscription] retrieving subscription:', subscriptionId)
       subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      console.log('[activate-subscription] subscription status:', subscription.status)
       if (!['active', 'trialing'].includes(subscription.status)) {
         return Response.json({ error: 'Subscription not active' }, { status: 400 })
       }
@@ -52,9 +58,12 @@ export async function POST(req) {
       customerEmail = subscription.metadata?.customer_email
     }
 
+    console.log('[activate-subscription] planName:', planName, 'customerEmail:', customerEmail)
     const creditsToAdd = PLAN_CREDITS[planName] || 0
+    console.log('[activate-subscription] creditsToAdd:', creditsToAdd)
 
     // Fire CAPI Purchase event immediately after confirming payment
+    console.log('[activate-subscription] firing CAPI, customerEmail:', customerEmail)
     if (customerEmail) {
       sendCapiEvent({
         eventName: 'Purchase',
@@ -102,9 +111,10 @@ export async function POST(req) {
         description: `${planName} subscription - upsell purchase`,
       })
 
+    console.log('[activate-subscription] done, creditsAdded:', creditsToAdd)
     return Response.json({ success: true, creditsAdded: creditsToAdd })
   } catch (error) {
-    console.error('Activate subscription error:', error)
+    console.error('[activate-subscription] error:', error)
     return Response.json({ error: error.message || 'Failed to activate subscription' }, { status: 500 })
   }
 }
