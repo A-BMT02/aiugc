@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
               email: upsellEmail,
               value: (session.amount_total || 4700) / 100,
               currency: session.currency || 'usd',
-              contentIds: ['blobbi-growth'],
+              contentIds: ['blobbi-growth'] as string[],
               customData: { content_name: 'Blobbi Growth Plan', predicted_ltv: 47 },
             })
             console.log('✅ CAPI Purchase fired for upsell:', upsellEmail)
