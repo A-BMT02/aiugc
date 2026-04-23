@@ -31,28 +31,44 @@ export async function POST(req) {
 
     let subscription
     let planName
+    let customerEmail
+    let paymentIntentId
 
     if (sessionId) {
-      // Checkout Session flow
       const session = await stripe.checkout.sessions.retrieve(sessionId)
       if (session.payment_status !== 'paid') {
         return Response.json({ error: 'Payment not completed' }, { status: 400 })
       }
       planName = session.metadata?.plan_name || 'growth'
+      customerEmail = session.customer_details?.email
+      paymentIntentId = session.payment_intent
       subscription = await stripe.subscriptions.retrieve(session.subscription)
     } else {
-      // Direct subscription flow (inline checkout with trial)
       subscription = await stripe.subscriptions.retrieve(subscriptionId)
       if (!['active', 'trialing'].includes(subscription.status)) {
         return Response.json({ error: 'Subscription not active' }, { status: 400 })
       }
       planName = subscription.metadata?.plan_name || 'growth'
+      customerEmail = subscription.metadata?.customer_email
+    }
+
+    const creditsToAdd = PLAN_CREDITS[planName] || 0
+
+    // Fire CAPI Purchase event immediately after confirming payment
+    if (customerEmail) {
+      sendCapiEvent({
+        eventName: 'Purchase',
+        email: customerEmail,
+        value: 47,
+        currency: 'USD',
+        contentIds: ['blobbi-growth'],
+        customData: { predicted_ltv: 47, content_name: 'Blobbi Growth Plan' },
+      }).catch(() => {})
     }
 
     const startDate = new Date(subscription.current_period_start * 1000).toISOString()
     const endDate = new Date(subscription.current_period_end * 1000).toISOString()
 
-    // Get current user credits
     const { data: currentUser } = await supabaseAdmin
       .from('users')
       .select('credits_remaining, total_credits_purchased')
@@ -62,7 +78,6 @@ export async function POST(req) {
     const newCredits = (currentUser?.credits_remaining || 0) + creditsToAdd
     const totalPurchased = (currentUser?.total_credits_purchased || 0) + creditsToAdd
 
-    // Update user subscription
     await supabaseAdmin
       .from('users')
       .update({
@@ -76,7 +91,6 @@ export async function POST(req) {
       })
       .eq('id', userId)
 
-    // Record transaction
     await supabaseAdmin
       .from('credit_transactions')
       .insert({
@@ -84,24 +98,9 @@ export async function POST(req) {
         type: 'purchase',
         amount: creditsToAdd,
         balance_after: newCredits,
-        stripe_payment_id: session.payment_intent,
+        stripe_payment_id: paymentIntentId,
         description: `${planName} subscription - upsell purchase`,
       })
-
-    // CAPI Subscribe event
-    const customerEmail = sessionId
-      ? (await stripe.checkout.sessions.retrieve(sessionId)).customer_details?.email
-      : subscription.metadata?.customer_email
-    if (customerEmail) {
-      sendCapiEvent({
-        eventName: 'Subscribe',
-        email: customerEmail,
-        value: 47,
-        currency: 'USD',
-        contentIds: ['blobbi-growth'],
-        customData: { predicted_ltv: 47 },
-      }).catch(() => {})
-    }
 
     return Response.json({ success: true, creditsAdded: creditsToAdd })
   } catch (error) {
