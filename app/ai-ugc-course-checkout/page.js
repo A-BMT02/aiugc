@@ -89,6 +89,7 @@ export default function CheckoutPage() {
   const stripeRef = useRef(null)
   const cardRef = useRef(null)
   const clientSecretRef = useRef(null)
+  const customerIdRef = useRef(null)
 
   const bumpTotal = BUMPS.filter(b => selectedBumps[b.id]).reduce((sum, b) => sum + b.price, 0)
   const total = 1 + bumpTotal
@@ -121,6 +122,7 @@ export default function CheckoutPage() {
         const data = await res.json()
         if (data.error) throw new Error(data.error)
         clientSecretRef.current = data.clientSecret
+        customerIdRef.current = data.customerId
 
         const elements = stripe.elements()
         card = elements.create('card', {
@@ -181,6 +183,7 @@ export default function CheckoutPage() {
     }).catch(() => {})
 
     localStorage.setItem('blobbi_email', email)
+    if (customerIdRef.current) localStorage.setItem('blobbi_customer_id', customerIdRef.current)
     window.location.href = `${window.location.origin}/lifetime-upsell`
   }
 

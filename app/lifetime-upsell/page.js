@@ -19,19 +19,34 @@ function LifetimeUpsellContent() {
 
   const handleCheckout = async () => {
     setLoading(true)
-    // Keep email in localStorage so it survives the Stripe redirect
-    if (email) localStorage.setItem('blobbi_email', email)
     trackEvent('InitiateCheckout', { value: 47, currency: 'USD', content_name: 'Blobbi Growth Plan' })
     try {
-      const res = await fetch('/api/upsell-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, fbc: getCookie('_fbc'), fbp: getCookie('_fbp') }),
-      })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else throw new Error(data.error || 'Checkout failed')
-    } catch {
+      const customerId = typeof window !== 'undefined' ? localStorage.getItem('blobbi_customer_id') : null
+
+      if (customerId) {
+        // One-click upsell — use saved card, no Stripe redirect
+        const res = await fetch('/api/upsell-subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId }),
+        })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        localStorage.removeItem('blobbi_customer_id')
+        router.push(`/upsell-trial?subscription_id=${data.subscriptionId}`)
+      } else {
+        // Fallback — Stripe hosted checkout
+        if (email) localStorage.setItem('blobbi_email', email)
+        const res = await fetch('/api/upsell-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, fbc: getCookie('_fbc'), fbp: getCookie('_fbp') }),
+        })
+        const data = await res.json()
+        if (data.url) window.location.href = data.url
+        else throw new Error(data.error || 'Checkout failed')
+      }
+    } catch (err) {
       alert('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
