@@ -1,12 +1,30 @@
 const PIXEL_ID = '2139845240137111'
 
-export async function sendCapiEvent({ eventName, email, value, currency = 'USD', contentIds = [], eventId, customData = {} }) {
+interface CapiEventParams {
+  eventName: string
+  email: string
+  value: number
+  currency?: string
+  contentIds?: string[]
+  eventId?: string
+  customData?: Record<string, unknown>
+}
+
+export async function sendCapiEvent({
+  eventName,
+  email,
+  value,
+  currency = 'USD',
+  contentIds = [],
+  eventId,
+  customData = {},
+}: CapiEventParams): Promise<void> {
   const token = process.env.META_CAPI_TOKEN
   if (!token) return
 
   const hashedEmail = await sha256(email.toLowerCase().trim())
 
-  const event = {
+  const event: Record<string, unknown> = {
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
     action_source: 'website',
@@ -16,16 +34,16 @@ export async function sendCapiEvent({ eventName, email, value, currency = 'USD',
   }
   if (eventId) event.event_id = eventId
 
-  const payload = { data: [event] }
+  const payload: Record<string, unknown> = { data: [event] }
   if (process.env.META_CAPI_TEST_CODE) payload.test_event_code = process.env.META_CAPI_TEST_CODE
 
   await fetch(
     `https://graph.facebook.com/v20.0/${PIXEL_ID}/events?access_token=${token}`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-  ).catch(err => console.error('[CAPI] error:', err))
+  ).catch((err: unknown) => console.error('[CAPI] error:', err))
 }
 
-async function sha256(str) {
+async function sha256(str: string): Promise<string> {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
 }
