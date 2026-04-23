@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { sendCapiEvent } from '../../../lib/capi'
 
 // Add runtime config to prevent build-time evaluation
 export const runtime = 'nodejs'
@@ -100,8 +101,20 @@ export async function POST(req: NextRequest) {
         const planName = session.metadata?.plan_name
 
         if (!userId || !planName) {
-          // Upsell checkout sessions have no user_id — handled by /api/activate-subscription
-          console.log('ℹ️ No user_id in session metadata, skipping (upsell flow)')
+          // Upsell checkout session — fire CAPI Purchase immediately on payment confirmation
+          const upsellEmail = session.customer_details?.email
+          console.log('ℹ️ Upsell checkout session, customer email:', upsellEmail)
+          if (upsellEmail) {
+            await sendCapiEvent({
+              eventName: 'Purchase',
+              email: upsellEmail,
+              value: (session.amount_total || 4700) / 100,
+              currency: session.currency || 'usd',
+              contentIds: ['blobbi-growth'],
+              customData: { content_name: 'Blobbi Growth Plan', predicted_ltv: 47 },
+            })
+            console.log('✅ CAPI Purchase fired for upsell:', upsellEmail)
+          }
           return NextResponse.json({ received: true })
         }
 
