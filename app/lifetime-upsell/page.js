@@ -9,10 +9,12 @@ function LifetimeUpsellContent() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const email = searchParams.get('email') || ''
+  const email = (typeof window !== 'undefined' ? localStorage.getItem('blobbi_email') : null) || searchParams.get('email') || ''
 
   const handleCheckout = async () => {
     setLoading(true)
+    // Keep email in localStorage so it survives the Stripe redirect
+    if (email) localStorage.setItem('blobbi_email', email)
     trackEvent('InitiateCheckout', { value: 47, currency: 'USD', content_name: 'Blobbi Growth Plan' })
     try {
       const res = await fetch('/api/upsell-checkout', {
@@ -217,7 +219,7 @@ function LifetimeUpsellContent() {
               </button>
 
               <button
-                onClick={() => router.push(`/upsell-trial?email=${encodeURIComponent(email)}`)}
+                onClick={() => router.push('/upsell-trial')}
                 className="w-full text-gray-600 hover:text-gray-400 text-sm py-3 px-4 cursor-pointer transition-colors"
               >
                 No thanks, I'll miss out on this one-time offer

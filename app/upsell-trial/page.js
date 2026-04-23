@@ -9,7 +9,7 @@ import { trackEvent } from '../../lib/pixel'
 function UpsellTrialContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const email = searchParams.get('email') || ''
+  const email = (typeof window !== 'undefined' ? localStorage.getItem('blobbi_email') : null) || searchParams.get('email') || ''
   const sessionId = searchParams.get('session_id') || ''
   const subscriptionId = searchParams.get('subscription_id') || ''
 
@@ -41,6 +41,7 @@ function UpsellTrialContent() {
         body: JSON.stringify({ subscriptionId, userId }),
       })
     }
+    localStorage.removeItem('blobbi_email')
     router.push('/app/course')
   }
 

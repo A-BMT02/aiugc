@@ -20,8 +20,8 @@ export async function POST(req) {
       payment_method_types: ['card'],
       line_items: [{ price: PRICE_ID, quantity: 1 }],
       mode: 'subscription',
-      success_url: `${APP_URL}/upsell-trial?email=${encodeURIComponent(email)}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${APP_URL}/upsell-trial?email=${encodeURIComponent(email)}`,
+      success_url: `${APP_URL}/upsell-trial?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${APP_URL}/lifetime-upsell`,
       metadata: {
         plan_name: 'growth',
         email,

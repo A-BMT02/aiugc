@@ -170,7 +170,8 @@ export default function CheckoutPage() {
       body: JSON.stringify({ email, name, total, bumpIds: addedBumps.map(b => b.id) }),
     }).catch(() => {})
 
-    window.location.href = `${window.location.origin}/lifetime-upsell?email=${encodeURIComponent(email)}`
+    localStorage.setItem('blobbi_email', email)
+    window.location.href = `${window.location.origin}/lifetime-upsell`
   }
 
   return (
