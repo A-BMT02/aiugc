@@ -16,7 +16,7 @@ export default function PricingSection({ handleSubscribe, loadingPlan }) {
       priceId: isYearly 
         ? process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_YEARLY 
         : process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY,
-      features: ["6 Minute of Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" , "Product Holding" , "Priority Support"]
+      features: ["Up to 5 Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" , "Product Holding" , "Priority Support"]
     },
     {
       name: "Growth",
@@ -27,7 +27,7 @@ export default function PricingSection({ handleSubscribe, loadingPlan }) {
       priceId: isYearly 
         ? process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_YEARLY 
         : process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY,
-      features: ["11 Minute of Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" ,  "Product Holding" , "Priority Support"],
+      features: ["Up to 10 Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" ,  "Product Holding" , "Priority Support"],
       popular: true
     },
     {
@@ -39,7 +39,7 @@ export default function PricingSection({ handleSubscribe, loadingPlan }) {
       priceId: isYearly 
         ? process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY 
         : process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
-      features: ["21 Minute of Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" ,  "Product Holding" , "Priority Support"],
+      features: ["Up to 20 Videos", "Multiple languages", "UGC Studio", "AI Editor","Multiple Actors" , "Custom Actor" ,  "Product Holding" , "Priority Support"],
     }
   ]
 

@@ -6,9 +6,9 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const PLAN_CREDITS = {
-  growth: 120,
-  pro: 225,
-  starter: 65,
+  growth: 70,
+  pro: 125,
+  starter: 40,
 }
 
 export async function POST(req) {

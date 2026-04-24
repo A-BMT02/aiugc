@@ -57,10 +57,10 @@ const getRawBody = async (req: NextRequest): Promise<Buffer> => {
 // Growth: 11 min = 110 credits + 4 credits (20 edits @ 0.2) = 114 ≈ 120 credits
 // Pro: 21 min = 210 credits + 6 credits (30 edits @ 0.2) = 216 ≈ 225 credits
 const PLAN_CREDITS = {
-  'start up': 65,
-  starter: 65,
-  growth: 120,
-  pro: 225,
+  'start up': 40,
+  starter: 40,
+  growth: 70,
+  pro: 125,
 }
 
 export async function POST(req: NextRequest) {
