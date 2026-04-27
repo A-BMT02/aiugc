@@ -169,11 +169,16 @@ export default function CheckoutPage() {
     if (stripeError) { setError(stripeError.message); setLoading(false); return }
     if (paymentIntent.status !== 'succeeded') { setError('Payment did not complete. Please try again.'); setLoading(false); return }
 
+    // Fire browser-side pixel Purchase event immediately
+    trackEvent('Purchase', { value: total, currency: 'USD', content_ids: ['ai-ugc-course'], content_type: 'product', num_items: 1 })
+
     // Send welcome email + triggers server-side CAPI Purchase event
+    // keepalive ensures the request completes even after page navigation
     const addedBumps = BUMPS.filter(b => selectedBumps[b.id])
     fetch('/api/send-course-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
       body: JSON.stringify({
         email, name, total,
         bumpIds: addedBumps.map(b => b.id),

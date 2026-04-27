@@ -11,6 +11,17 @@ export async function POST(req) {
     const userAgent = req.headers.get('user-agent') || undefined
     if (!email) return Response.json({ error: 'email required' }, { status: 400 })
 
+    // Fire CAPI first — independent of email success
+    sendCapiEvent({
+      eventName: 'Purchase',
+      email,
+      value: total,
+      currency: 'USD',
+      contentIds: ['ai-ugc-course', ...bumpIds],
+      fbc, fbp, ip, userAgent,
+      customData: { num_items: 1 + bumpIds.length },
+    }).catch(() => {})
+
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const firstName = name?.split(' ')[0] || 'there'
@@ -110,17 +121,6 @@ export async function POST(req) {
 </html>
       `,
     })
-
-    // CAPI Purchase event (server-side, can't be blocked by ad blockers)
-    sendCapiEvent({
-      eventName: 'Purchase',
-      email,
-      value: total,
-      currency: 'USD',
-      contentIds: ['ai-ugc-course', ...bumpIds],
-      fbc, fbp, ip, userAgent,
-      customData: { num_items: 1 + bumpIds.length },
-    }).catch(() => {})
 
     return Response.json({ success: true })
   } catch (error) {
