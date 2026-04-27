@@ -176,8 +176,11 @@ export default function CheckoutPage() {
     if (stripeError) { setError(stripeError.message); setLoading(false); return }
     if (paymentIntent.status !== 'succeeded') { setError('Payment did not complete. Please try again.'); setLoading(false); return }
 
+    // Shared event_id lets Meta deduplicate the browser + CAPI events correctly
+    const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`
+
     // Fire browser-side pixel Purchase event immediately
-    trackEvent('Purchase', { value: total, currency: 'USD', content_ids: ['ai-ugc-course'], content_type: 'product', num_items: 1 })
+    trackEvent('Purchase', { value: total, currency: 'USD', content_ids: ['ai-ugc-course'], content_type: 'product', num_items: 1, eventID: eventId })
 
     // Send welcome email + triggers server-side CAPI Purchase event
     // keepalive ensures the request completes even after page navigation
@@ -191,6 +194,7 @@ export default function CheckoutPage() {
         bumpIds: addedBumps.map(b => b.id),
         fbc: getCookie('_fbc'),
         fbp: getCookie('_fbp'),
+        eventId,
       }),
     }).catch(() => {})
 

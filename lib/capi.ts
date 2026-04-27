@@ -42,7 +42,7 @@ export async function sendCapiEvent({
     event_name: eventName,
     event_time: Math.floor(Date.now() / 1000),
     action_source: 'website',
-    event_source_url: 'https://www.blobbi.ai',
+    event_source_url: 'https://www.blobbi.ai/ai-ugc-course-checkout',
     user_data: userData,
     custom_data: { value, currency, content_ids: contentIds, content_type: 'product', ...customData },
   }

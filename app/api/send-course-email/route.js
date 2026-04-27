@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(req) {
   try {
-    const { email, name, total = 1, bumpIds = [], fbc, fbp } = await req.json()
+    const { email, name, total = 1, bumpIds = [], fbc, fbp, eventId } = await req.json()
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || undefined
     const userAgent = req.headers.get('user-agent') || undefined
     if (!email) return Response.json({ error: 'email required' }, { status: 400 })
@@ -18,7 +18,7 @@ export async function POST(req) {
       value: total,
       currency: 'USD',
       contentIds: ['ai-ugc-course', ...bumpIds],
-      fbc, fbp, ip, userAgent,
+      eventId, fbc, fbp, ip, userAgent,
       customData: { num_items: 1 + bumpIds.length },
     }).catch(() => {})
 
