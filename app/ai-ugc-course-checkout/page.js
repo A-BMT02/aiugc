@@ -151,7 +151,14 @@ export default function CheckoutPage() {
     e.preventDefault()
     if (!name.trim() || !email.trim()) { setError('Please fill in all fields.'); return }
     setError('')
+    trackEvent('Lead', { value: 1, currency: 'USD', content_name: 'AI UGC Fast-Start Course', content_category: 'course' })
     trackEvent('InitiateCheckout', { value: 1, currency: 'USD', num_items: 1 })
+    fetch('/api/track-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({ email, name, fbc: getCookie('_fbc'), fbp: getCookie('_fbp') }),
+    }).catch(() => {})
     setStep(2)
   }
 
