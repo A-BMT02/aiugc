@@ -51,10 +51,15 @@ export async function sendCapiEvent({
   const payload: Record<string, unknown> = { data: [event] }
   if (process.env.META_CAPI_TEST_CODE) payload.test_event_code = process.env.META_CAPI_TEST_CODE
 
-  await fetch(
+  const res = await fetch(
     `https://graph.facebook.com/v20.0/${PIXEL_ID}/events?access_token=${token}`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
-  ).catch((err: unknown) => console.error('[CAPI] error:', err))
+  ).catch((err: unknown) => { console.error('[CAPI] fetch error:', err); return null })
+
+  if (res) {
+    const body = await res.json().catch(() => null)
+    console.log(`[CAPI] ${eventName} → status=${res.status}`, JSON.stringify(body))
+  }
 }
 
 async function sha256(str: string): Promise<string> {
