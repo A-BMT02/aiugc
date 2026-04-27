@@ -9,8 +9,11 @@ export async function POST(req) {
     const bumpAmount = Object.values(bumps).filter(Boolean).length * 1900
     const amount = 100 + bumpAmount // in cents
 
-    // Create a customer so we can save their card for the upsell
-    const customer = await stripe.customers.create({ email, name })
+    // Reuse existing customer if one already exists for this email
+    const existing = await stripe.customers.list({ email, limit: 1 })
+    const customer = existing.data.length > 0
+      ? existing.data[0]
+      : await stripe.customers.create({ email, name })
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
