@@ -11,22 +11,22 @@ export async function POST(req) {
     const userAgent = req.headers.get('user-agent') || undefined
     if (!email) return Response.json({ error: 'email required' }, { status: 400 })
 
-    // Fire CAPI first — independent of email success
-    sendCapiEvent({
-      eventName: 'Purchase',
-      email,
-      value: total,
-      currency: 'USD',
-      contentIds: ['ai-ugc-course', ...bumpIds],
-      eventId, fbc, fbp, ip, userAgent,
-      customData: { num_items: 1 + bumpIds.length },
-    }).catch(() => {})
-
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const firstName = name?.split(' ')[0] || 'there'
 
-    await resend.emails.send({
+    // Run CAPI and email in parallel — both are awaited so neither gets killed by serverless
+    await Promise.allSettled([
+      sendCapiEvent({
+        eventName: 'Purchase',
+        email,
+        value: total,
+        currency: 'USD',
+        contentIds: ['ai-ugc-course', ...bumpIds],
+        eventId, fbc, fbp, ip, userAgent,
+        customData: { num_items: 1 + bumpIds.length },
+      }),
+      resend.emails.send({
       from: 'Blobbi <hello@blobbi.ai>',
       to: email,
       subject: 'Welcome to the AI UGC Fast-Start Course 🎉',
@@ -120,7 +120,8 @@ export async function POST(req) {
 </body>
 </html>
       `,
-    })
+      }),
+    ])
 
     return Response.json({ success: true })
   } catch (error) {
