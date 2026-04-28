@@ -180,7 +180,7 @@ export default function CheckoutPage() {
     const eventId = `purchase_${Date.now()}_${Math.random().toString(36).slice(2)}`
 
     // Fire browser-side pixel Purchase event immediately
-    trackEvent('Purchase', { value: total, currency: 'USD', content_ids: ['ai-ugc-course'], content_type: 'product', num_items: 1, eventID: eventId })
+    trackEvent('Purchase', { value: total, currency: 'USD', content_ids: ['ai-ugc-course'], content_type: 'product', num_items: 1 }, eventId)
 
     // Send welcome email + triggers server-side CAPI Purchase event
     // keepalive ensures the request completes even after page navigation
