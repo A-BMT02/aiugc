@@ -51,6 +51,8 @@ export async function sendCapiEvent({
   const payload: Record<string, unknown> = { data: [event] }
   if (process.env.META_CAPI_TEST_CODE) payload.test_event_code = process.env.META_CAPI_TEST_CODE
 
+  console.log(`[CAPI] sending ${eventName} | fbc=${fbc ?? 'MISSING'} | fbp=${fbp ?? 'MISSING'} | eventId=${eventId ?? 'none'} | ip=${ip ?? 'none'}`)
+
   const res = await fetch(
     `https://graph.facebook.com/v20.0/${PIXEL_ID}/events?access_token=${token}`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }
