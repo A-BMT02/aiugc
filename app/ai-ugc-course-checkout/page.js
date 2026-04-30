@@ -200,7 +200,10 @@ export default function CheckoutPage() {
 
     localStorage.setItem('blobbi_email', email)
     if (customerIdRef.current) localStorage.setItem('blobbi_customer_id', customerIdRef.current)
-    window.location.href = `${window.location.origin}/lifetime-upsell`
+    // Small delay to allow browser pixel to finish sending before navigation
+    setTimeout(() => {
+      window.location.href = `${window.location.origin}/lifetime-upsell`
+    }, 300)
   }
 
   return (
