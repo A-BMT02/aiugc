@@ -34,21 +34,8 @@ const getSupabaseAdmin = () => {
 }
 
 const getRawBody = async (req: NextRequest): Promise<Buffer> => {
-  const chunks: Uint8Array[] = []
-  const reader = req.body?.getReader()
-
-  if (!reader) {
-    throw new Error('No request body found')
-  }
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-    chunks.push(value)
-  }
-
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0)
-  return Buffer.concat(chunks.map(chunk => Buffer.from(chunk)), totalLength)
+  const arrayBuffer = await req.arrayBuffer()
+  return Buffer.from(arrayBuffer)
 }
 
 // Credit mapping for each plan
