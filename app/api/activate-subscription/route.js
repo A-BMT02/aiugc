@@ -20,7 +20,7 @@ export async function POST(req) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { sessionId, subscriptionId, userId } = await req.json()
+    const { sessionId, subscriptionId, userId, email: bodyEmail } = await req.json()
 
     if (!userId) {
       return Response.json({ error: 'userId is required' }, { status: 400 })
@@ -49,20 +49,20 @@ export async function POST(req) {
         return Response.json({ error: 'Subscription not active' }, { status: 400 })
       }
       planName = subscription.metadata?.plan_name || 'growth'
-      customerEmail = subscription.metadata?.customer_email
+      customerEmail = subscription.metadata?.customer_email || bodyEmail
     }
 
     const creditsToAdd = PLAN_CREDITS[planName] || 0
 
     if (customerEmail) {
-      sendCapiEvent({
+      await sendCapiEvent({
         eventName: 'Purchase',
         email: customerEmail,
         value: 47,
         currency: 'USD',
         contentIds: ['blobbi-growth'],
         customData: { predicted_ltv: 47, content_name: 'Blobbi Growth Plan' },
-      }).catch(() => {})
+      })
     }
 
     const startDate = new Date(subscription.current_period_start * 1000).toISOString()

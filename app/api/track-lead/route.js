@@ -10,6 +10,9 @@ export async function POST(req) {
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || undefined
     const userAgent = req.headers.get('user-agent') || undefined
+    const eventId = `lead_${Date.now()}_${Math.random().toString(36).slice(2)}`
+
+    console.log(`[CAPI] Lead eventId=${eventId}`)
 
     await sendCapiEvent({
       eventName: 'Lead',
@@ -17,7 +20,7 @@ export async function POST(req) {
       value: 1,
       currency: 'USD',
       contentIds: ['ai-ugc-course'],
-      fbc, fbp, ip, userAgent,
+      eventId, fbc, fbp, ip, userAgent,
       customData: { content_name: 'AI UGC Fast-Start Course', content_category: 'course' },
     })
 

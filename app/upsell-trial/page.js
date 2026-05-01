@@ -32,13 +32,13 @@ function UpsellTrialContent() {
       await fetch('/api/activate-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, userId }),
+        body: JSON.stringify({ sessionId, userId, email }),
       })
     } else if (subscriptionId) {
       await fetch('/api/activate-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionId, userId }),
+        body: JSON.stringify({ subscriptionId, userId, email }),
       })
     }
     localStorage.removeItem('blobbi_email')

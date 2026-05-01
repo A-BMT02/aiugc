@@ -15,6 +15,8 @@ export async function POST(req) {
 
     const firstName = name?.split(' ')[0] || 'there'
 
+    console.log(`[CAPI] Purchase eventId=${eventId ?? 'none'}`)
+
     // Run CAPI and email in parallel — both are awaited so neither gets killed by serverless
     await Promise.allSettled([
       sendCapiEvent({
