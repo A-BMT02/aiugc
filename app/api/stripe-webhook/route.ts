@@ -236,6 +236,21 @@ export async function POST(req: NextRequest) {
         }
 
         console.log(`✅✅✅ COMPLETE: User ${userId} subscribed to ${planName}, added ${creditsToAdd} credits`)
+
+        const customerEmail = session.customer_details?.email
+        if (customerEmail) {
+          await sendCapiEvent({
+            eventName: 'Purchase',
+            email: customerEmail,
+            value: (session.amount_total || 0) / 100,
+            currency: session.currency || 'usd',
+            contentIds: [normalizedPlanName],
+            eventId: session.id,
+            fbc: session.metadata?.fbc || undefined,
+            fbp: session.metadata?.fbp || undefined,
+            customData: { content_name: `Blobbi ${planName} Plan` },
+          })
+        }
         break
       }
 

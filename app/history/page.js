@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { trackEvent } from '../../lib/pixel'
 import { getUserWorkspaces, deleteWorkspace, createWorkspace } from '../../lib/database'
 import { Loader2, Video, Trash2, Download, Calendar, Clock, Plus, Edit } from 'lucide-react'
 import DashboardSidebar from '../dashboard/DashboardSidebar'
@@ -13,6 +14,7 @@ export const dynamic = 'force-dynamic'
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [workspaces, setWorkspaces] = useState([])
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState(null)
@@ -23,6 +25,24 @@ export default function HistoryPage() {
       router.push('/login')
     }
   }, [user, authLoading, router])
+
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const sessionId = searchParams.get('session_id')
+    if (success !== 'true' || !sessionId) return
+
+    const pending = localStorage.getItem('blobbi_pending_purchase')
+    const { planName, value } = pending ? JSON.parse(pending) : {}
+    trackEvent('Purchase', {
+      value: value || 0,
+      currency: 'USD',
+      content_ids: [planName || 'subscription'],
+      content_type: 'product',
+      content_name: `Blobbi ${planName || ''} Plan`,
+    }, sessionId)
+    localStorage.removeItem('blobbi_pending_purchase')
+    window.history.replaceState({}, '', '/history')
+  }, [searchParams])
 
   useEffect(() => {
     if (user) {

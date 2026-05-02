@@ -27,7 +27,12 @@ export default function OnboardingPage() {
     }
   }, [user, profile, loading, router])
 
-  const handleSubscribe = async (planName, priceId) => {
+  const getCookie = (name) => {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+    return match ? match[2] : undefined
+  }
+
+  const handleSubscribe = async (planName, priceId, value) => {
     if (!user) {
       router.push('/signup')
       return
@@ -44,6 +49,8 @@ export default function OnboardingPage() {
         return
       }
 
+      localStorage.setItem('blobbi_pending_purchase', JSON.stringify({ planName, value: value || 0 }))
+
       const response = await fetch('/api/stripe', {
         method: 'POST',
         headers: {
@@ -53,6 +60,8 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           priceId,
           planName,
+          fbc: getCookie('_fbc'),
+          fbp: getCookie('_fbp'),
         }),
       })
 

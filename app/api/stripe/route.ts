@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized - Invalid token' }, { status: 401 })
     }
 
-    const { priceId, planName } = await req.json()
+    const { priceId, planName, fbc, fbp } = await req.json()
 
     if (!priceId) {
       return NextResponse.json({ error: 'Price ID is required' }, { status: 400 })
@@ -91,11 +91,13 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/history?success=true`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/history?success=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/onboarding`,
       metadata: {
         user_id: user.id,
         plan_name: planName,
+        fbc: fbc || '',
+        fbp: fbp || '',
       },
     })
 

@@ -109,7 +109,7 @@ export default function PricingSection({ handleSubscribe, loadingPlan }) {
               <div className="text-green-400 font-semibold mb-8">{plan.videos}</div>
               
               <button
-                onClick={() => handleSubscribe(plan.name, plan.priceId)}
+                onClick={() => handleSubscribe(plan.name, plan.priceId, isYearly ? Number(plan.yearlyTotal) : Number(plan.monthlyPrice))}
                 disabled={loadingPlan === plan.name}
                 className={`block w-full py-3 rounded-full font-semibold text-center mb-8 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                   plan.popular
