@@ -1,36 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { trackEvent } from '../../lib/pixel'
-import { getUserWorkspaces, deleteWorkspace, createWorkspace } from '../../lib/database'
-import { Loader2, Video, Trash2, Download, Calendar, Clock, Plus, Edit } from 'lucide-react'
-import DashboardSidebar from '../dashboard/DashboardSidebar'
-import SubscriptionVerifier from '../../components/SubscriptionVerifier'
 
-export const dynamic = 'force-dynamic'
-
-export default function HistoryPage() {
-  const { user, loading: authLoading } = useAuth()
-  const router = useRouter()
+function PurchaseTracker() {
   const searchParams = useSearchParams()
-  const [workspaces, setWorkspaces] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [deleting, setDeleting] = useState(null)
-  const [creating, setCreating] = useState(false)
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login')
-    }
-  }, [user, authLoading, router])
-
   useEffect(() => {
     const success = searchParams.get('success')
     const sessionId = searchParams.get('session_id')
     if (success !== 'true' || !sessionId) return
-
     const pending = localStorage.getItem('blobbi_pending_purchase')
     const { planName, value } = pending ? JSON.parse(pending) : {}
     trackEvent('Purchase', {
@@ -43,6 +23,28 @@ export default function HistoryPage() {
     localStorage.removeItem('blobbi_pending_purchase')
     window.history.replaceState({}, '', '/history')
   }, [searchParams])
+  return null
+}
+import { getUserWorkspaces, deleteWorkspace, createWorkspace } from '../../lib/database'
+import { Loader2, Video, Trash2, Download, Calendar, Clock, Plus, Edit } from 'lucide-react'
+import DashboardSidebar from '../dashboard/DashboardSidebar'
+import SubscriptionVerifier from '../../components/SubscriptionVerifier'
+
+export const dynamic = 'force-dynamic'
+
+export default function HistoryPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+  const [workspaces, setWorkspaces] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(null)
+  const [creating, setCreating] = useState(false)
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login')
+    }
+  }, [user, authLoading, router])
 
   useEffect(() => {
     if (user) {
@@ -139,7 +141,7 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-black text-white flex">
-
+      <Suspense fallback={null}><PurchaseTracker /></Suspense>
 <SubscriptionVerifier />
       <DashboardSidebar />
 
