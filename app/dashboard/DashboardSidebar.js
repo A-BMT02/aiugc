@@ -1,6 +1,6 @@
 'use client'
 
-import { Video, History, LogOut, X, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Video, History, LogOut, X, Plus, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -18,6 +18,7 @@ export default function DashboardSidebar({ className = '' }) {
 
   const isWorkspace = pathname?.startsWith('/workspace/')
   const isHistory = pathname === '/history'
+  const isBilling = pathname === '/billing'
 
   // Get credits safely
   const credits = profile?.credits_remaining ?? 0
@@ -166,11 +167,11 @@ export default function DashboardSidebar({ className = '' }) {
           </button>
 
           {/* History */}
-          <button 
+          <button
             onClick={() => router.push('/history')}
             className={`p-3 rounded-lg transition flex items-center gap-3 ${
-              isHistory 
-                ? 'bg-white/10 ring-2 ring-green-500' 
+              isHistory
+                ? 'bg-white/10 ring-2 ring-green-500'
                 : 'hover:bg-white/10'
             }`}
             title="History"
@@ -178,6 +179,22 @@ export default function DashboardSidebar({ className = '' }) {
             <History className="w-5 h-5 flex-shrink-0" />
             {isExpanded && (
               <span className="font-medium">History</span>
+            )}
+          </button>
+
+          {/* Billing */}
+          <button
+            onClick={() => router.push('/billing')}
+            className={`p-3 rounded-lg transition flex items-center gap-3 ${
+              isBilling
+                ? 'bg-white/10 ring-2 ring-green-500'
+                : 'hover:bg-white/10'
+            }`}
+            title="Billing"
+          >
+            <CreditCard className="w-5 h-5 flex-shrink-0" />
+            {isExpanded && (
+              <span className="font-medium">Billing</span>
             )}
           </button>
         </nav>
