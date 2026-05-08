@@ -18,10 +18,10 @@ export default function AdvancedSettings({
         <select
           value={language}
           onChange={(e) => onLanguageChange(e.target.value)}
-          className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition text-sm"
+          className="w-full px-3 py-2 bg-[#1a1a1a] border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition text-sm text-white"
         >
           {LANGUAGES.map(({ code, name }) => (
-            <option key={code} value={code}>{name}</option>
+            <option key={code} value={code} className="bg-[#1a1a1a] text-white">{name}</option>
           ))}
         </select>
       </div>
