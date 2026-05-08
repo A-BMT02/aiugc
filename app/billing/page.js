@@ -3,8 +3,12 @@
 import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { Loader2, CreditCard, Zap, X, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Loader2, CreditCard, Zap, X, AlertTriangle, CheckCircle, Check } from 'lucide-react'
+import { loadStripe } from '@stripe/stripe-js'
+import { supabase } from '../../lib/supabase/client'
 import DashboardSidebar from '../dashboard/DashboardSidebar'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
 const PLAN_INFO = {
   free:    { label: 'Free',    price: 0,   credits: 0,   color: 'text-gray-400',  border: 'border-white/10' },
@@ -25,11 +29,56 @@ const CANCEL_REASONS = [
 
 const STEPS = { IDLE: 'idle', REASON: 'reason', FEEDBACK: 'feedback', CONFIRM: 'confirm', DONE: 'done' }
 
+const UPGRADE_PLANS = [
+  {
+    name: 'Start Up',
+    tier: 'starter',
+    monthlyPrice: '49',
+    yearlyPrice: '39',
+    yearlyTotal: '468',
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_MONTHLY,
+    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER_YEARLY,
+    features: ['Up to 5 Videos', 'Multiple languages', 'UGC Studio', 'AI Editor', 'Multiple Actors', 'Custom Actor', 'Product Holding', 'Priority Support'],
+  },
+  {
+    name: 'Growth',
+    tier: 'growth',
+    monthlyPrice: '69',
+    yearlyPrice: '59',
+    yearlyTotal: '708',
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_MONTHLY,
+    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_GROWTH_YEARLY,
+    features: ['Up to 10 Videos', 'Multiple languages', 'UGC Studio', 'AI Editor', 'Multiple Actors', 'Custom Actor', 'Product Holding', 'Priority Support'],
+    popular: true,
+  },
+  {
+    name: 'Pro',
+    tier: 'pro',
+    monthlyPrice: '119',
+    yearlyPrice: '99',
+    yearlyTotal: '1188',
+    monthlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
+    yearlyPriceId: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_YEARLY,
+    features: ['Up to 20 Videos', 'Multiple languages', 'UGC Studio', 'AI Editor', 'Multiple Actors', 'Custom Actor', 'Product Holding', 'Priority Support'],
+  },
+]
+
+const TIER_ORDER = { free: 0, starter: 1, growth: 2, pro: 3 }
+
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return undefined
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'))
+  return match ? match[2] : undefined
+}
+
 export default function BillingPage() {
   const { user, profile, loading: authLoading } = useAuth()
   const router = useRouter()
 
   const [cancelStep, setCancelStep] = useState(STEPS.IDLE)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [isYearly, setIsYearly] = useState(false)
+  const [loadingPlan, setLoadingPlan] = useState(null)
   const [selectedReason, setSelectedReason] = useState('')
   const [feedback, setFeedback] = useState('')
   const [canceling, setCanceling] = useState(false)
@@ -80,6 +129,44 @@ export default function BillingPage() {
     setSelectedReason('')
     setFeedback('')
     setError('')
+  }
+
+  const handleSubscribe = async (planName, priceId, value) => {
+    if (!user) return
+    try {
+      setLoadingPlan(planName)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { router.push('/login'); return }
+
+      localStorage.setItem('blobbi_pending_purchase', JSON.stringify({ planName, value: value || 0 }))
+
+      const response = await fetch('/api/stripe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          priceId,
+          planName,
+          fbc: getCookie('_fbc'),
+          fbp: getCookie('_fbp'),
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to create checkout session')
+
+      const stripe = await stripePromise
+      if (!stripe) throw new Error('Stripe failed to load')
+      if (data.url) window.location.href = data.url
+      else throw new Error('No checkout URL received')
+    } catch (error) {
+      console.error('Subscription error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to start checkout')
+    } finally {
+      setLoadingPlan(null)
+    }
   }
 
   return (
@@ -135,7 +222,7 @@ export default function BillingPage() {
             <h3 className="font-bold mb-1">Upgrade your plan</h3>
             <p className="text-sm text-gray-400 mb-4">Get more credits and unlock higher limits.</p>
             <button
-              onClick={() => router.push('/onboarding')}
+              onClick={() => setShowUpgradeModal(true)}
               className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 rounded-xl font-semibold text-sm transition flex items-center gap-2"
             >
               <Zap className="w-4 h-4" />
@@ -160,6 +247,94 @@ export default function BillingPage() {
           </div>
         )}
       </div>
+
+      {/* Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-2xl font-black">Upgrade your plan</h3>
+                  <p className="text-sm text-gray-400 mt-1">Choose the plan that fits your needs</p>
+                </div>
+                <button onClick={() => setShowUpgradeModal(false)} className="p-2 hover:bg-white/10 rounded-lg transition">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Billing Toggle */}
+              <div className="flex items-center justify-center gap-4 mb-8">
+                <span className={`text-sm font-semibold transition-colors ${!isYearly ? 'text-white' : 'text-gray-400'}`}>Monthly</span>
+                <button
+                  onClick={() => setIsYearly(!isYearly)}
+                  className="relative w-14 h-7 bg-white/10 rounded-full transition hover:bg-white/20"
+                >
+                  <div className={`absolute top-0.5 left-0.5 w-6 h-6 bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-transform duration-300 ${isYearly ? 'translate-x-7' : 'translate-x-0'}`} />
+                </button>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-semibold transition-colors ${isYearly ? 'text-white' : 'text-gray-400'}`}>Yearly</span>
+                  <span className="px-2 py-0.5 bg-green-500/20 text-green-400 text-xs font-bold rounded-full">Save 20%</span>
+                </div>
+              </div>
+
+              {/* Plan Cards */}
+              <div className="grid md:grid-cols-3 gap-5">
+                {UPGRADE_PLANS.filter(p => TIER_ORDER[p.tier] > TIER_ORDER[tier]).map((plan) => {
+                  const priceId = isYearly ? plan.yearlyPriceId : plan.monthlyPriceId
+                  const value = isYearly ? Number(plan.yearlyTotal) : Number(plan.monthlyPrice)
+                  return (
+                    <div key={plan.tier} className={`relative p-6 rounded-2xl border-2 transition-all ${
+                      plan.popular
+                        ? 'bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500'
+                        : 'bg-white/[0.02] border-white/10 hover:border-green-500/50'
+                    }`}>
+                      {plan.popular && (
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full text-xs font-semibold whitespace-nowrap">
+                          Most Popular
+                        </div>
+                      )}
+                      <div className="text-lg font-bold mb-2">{plan.name}</div>
+                      <div className="flex items-baseline mb-6">
+                        <span className="text-4xl font-black">${isYearly ? plan.yearlyPrice : plan.monthlyPrice}</span>
+                        <span className="text-gray-400 ml-2 text-sm">/month</span>
+                      </div>
+                      <button
+                        onClick={() => handleSubscribe(plan.name, priceId, value)}
+                        disabled={loadingPlan === plan.name}
+                        className={`w-full py-2.5 rounded-xl font-semibold text-sm mb-6 transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                          plan.popular
+                            ? 'bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg hover:shadow-green-500/30'
+                            : 'bg-white/10 hover:bg-white/20'
+                        }`}
+                      >
+                        {loadingPlan === plan.name ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Processing...
+                          </span>
+                        ) : 'Get Started'}
+                      </button>
+                      <div className="space-y-2.5">
+                        {plan.features.map((f) => (
+                          <div key={f} className="flex items-center gap-2.5">
+                            <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                            <span className="text-xs text-gray-300">{f}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+                {UPGRADE_PLANS.filter(p => TIER_ORDER[p.tier] > TIER_ORDER[tier]).length === 0 && (
+                  <p className="col-span-3 text-center text-gray-400 py-8">You're already on the highest plan.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cancel Modal */}
       {cancelStep !== STEPS.IDLE && (
