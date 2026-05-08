@@ -1,5 +1,7 @@
 'use client'
 
+import { LANGUAGES } from '../../lib/constants'
+
 export default function AdvancedSettings({
   language,
   onLanguageChange,
@@ -18,8 +20,9 @@ export default function AdvancedSettings({
           onChange={(e) => onLanguageChange(e.target.value)}
           className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-green-500 focus:outline-none transition text-sm"
         >
-          <option value="en">English</option>
-
+          {LANGUAGES.map(({ code, name }) => (
+            <option key={code} value={code}>{name}</option>
+          ))}
         </select>
       </div>
 
