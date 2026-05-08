@@ -325,11 +325,12 @@ if (profile.credits_remaining < estimatedCredits) {
     const voiceId = typeof selectedVoice === 'object' ? selectedVoice.id : selectedVoice
 
     setGenerationProgress({ step: 2, message: 'Generating speech...' })
-    const speechData = await generateSpeech(script, voiceId, { // ← Use voiceId
+    const speechData = await generateSpeech(script, voiceId, {
       clarity: 0.75,
       tone: 0.40,
       emotion: 0.0,
       speed: 1.0,
+      language: language || 'en',
     })
 
     console.log('✅ Speech generated:', speechData.audioUrl)

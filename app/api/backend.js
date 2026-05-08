@@ -57,9 +57,9 @@ export async function generateSpeech(text, voiceId, settings = {}) {
   const response = await fetch(`${API_URL}/api/generate-speech`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       text,
-      voiceId, // ✅ No capitalizeFirstLetter!
+      voiceId,
       ...settings
     }),
   })
