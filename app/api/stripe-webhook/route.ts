@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendCapiEvent } from '../../../lib/capi'
+import { sendPurchaseEmail } from '../../../lib/sendPurchaseEmail'
 
 // Add runtime config to prevent build-time evaluation
 export const runtime = 'nodejs'
@@ -239,17 +240,20 @@ export async function POST(req: NextRequest) {
 
         const customerEmail = session.customer_details?.email
         if (customerEmail) {
-          await sendCapiEvent({
-            eventName: 'Purchase',
-            email: customerEmail,
-            value: (session.amount_total || 0) / 100,
-            currency: session.currency || 'usd',
-            contentIds: [normalizedPlanName],
-            eventId: session.id,
-            fbc: session.metadata?.fbc || undefined,
-            fbp: session.metadata?.fbp || undefined,
-            customData: { content_name: `Blobbi ${planName} Plan` },
-          })
+          await Promise.allSettled([
+            sendCapiEvent({
+              eventName: 'Purchase',
+              email: customerEmail,
+              value: (session.amount_total || 0) / 100,
+              currency: session.currency || 'usd',
+              contentIds: [normalizedPlanName],
+              eventId: session.id,
+              fbc: session.metadata?.fbc || undefined,
+              fbp: session.metadata?.fbp || undefined,
+              customData: { content_name: `Blobbi ${planName} Plan` },
+            }),
+            sendPurchaseEmail(customerEmail, planName),
+          ])
         }
         break
       }
