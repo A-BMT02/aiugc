@@ -79,6 +79,7 @@ export default function BillingPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [isYearly, setIsYearly] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState(null)
+  const [loadingPortal, setLoadingPortal] = useState(false)
   const [selectedReason, setSelectedReason] = useState('')
   const [feedback, setFeedback] = useState('')
   const [canceling, setCanceling] = useState(false)
@@ -129,6 +130,24 @@ export default function BillingPage() {
     setSelectedReason('')
     setFeedback('')
     setError('')
+  }
+
+  const handleBillingPortal = async () => {
+    try {
+      setLoadingPortal(true)
+      const res = await fetch('/api/billing-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      window.location.href = data.url
+    } catch (err) {
+      alert(err.message || 'Failed to open billing portal')
+    } finally {
+      setLoadingPortal(false)
+    }
   }
 
   const handleSubscribe = async (planName, priceId, value) => {
@@ -213,6 +232,21 @@ export default function BillingPage() {
           )}
           {isActive && endDate && !isCanceling && (
             <p className="text-xs text-gray-500">Next billing date: {endDate}</p>
+          )}
+
+          {(isActive || isCanceling) && (
+            <button
+              onClick={handleBillingPortal}
+              disabled={loadingPortal}
+              className="mt-4 w-full py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loadingPortal ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CreditCard className="w-4 h-4" />
+              )}
+              Manage Billing & Invoices
+            </button>
           )}
         </div>
 

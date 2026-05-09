@@ -244,8 +244,8 @@ export default function PrivacyPage() {
             <div className="p-6 bg-white/5 border border-white/10 rounded-lg">
               <p className="font-semibold text-white mb-4">Blobbi Privacy Team</p>
               <div className="space-y-2 text-gray-400">
-                <p>Email: privacy@blobbi.com</p>
-                <p>Support: support@blobbi.com</p>
+                <p>Email: hello@blobbi.ai</p>
+                <p>Support: hello@blobbi.ai</p>
               </div>
             </div>
           </section>

@@ -107,7 +107,13 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password)
-      
+
+      fetch('/api/welcome-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).catch(() => {})
+
       alert('✅ Account created! You can now login')
       router.push('/login')
       

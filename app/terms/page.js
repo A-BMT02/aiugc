@@ -180,7 +180,7 @@ export default function TermsPage() {
             </p>
             <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-lg">
               <p className="font-semibold text-white">Blobbi Support</p>
-              <p className="text-gray-400 mt-2">Email: support@blobbi.com</p>
+              <p className="text-gray-400 mt-2">Email: hello@blobbi.ai</p>
             </div>
           </section>
         </div>
