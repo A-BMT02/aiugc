@@ -1,7 +1,6 @@
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendCapiEvent } from '../../../lib/capi'
-import { sendPurchaseEmail } from '../../../lib/sendPurchaseEmail'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -56,17 +55,14 @@ export async function POST(req) {
     const creditsToAdd = PLAN_CREDITS[planName] || 0
 
     if (customerEmail) {
-      await Promise.allSettled([
-        sendCapiEvent({
-          eventName: 'Purchase',
-          email: customerEmail,
-          value: 47,
-          currency: 'USD',
-          contentIds: ['blobbi-growth'],
-          customData: { predicted_ltv: 47, content_name: 'Blobbi Growth Plan' },
-        }),
-        sendPurchaseEmail(customerEmail, planName),
-      ])
+      await sendCapiEvent({
+        eventName: 'Purchase',
+        email: customerEmail,
+        value: 47,
+        currency: 'USD',
+        contentIds: ['blobbi-growth'],
+        customData: { predicted_ltv: 47, content_name: 'Blobbi Growth Plan' },
+      })
     }
 
     const startDate = new Date(subscription.current_period_start * 1000).toISOString()
