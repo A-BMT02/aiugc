@@ -275,7 +275,7 @@ export async function POST(req: NextRequest) {
         }
 
         const subscription : any = await stripe.subscriptions.retrieve(subscriptionId)
-        
+
         const { data: userData } = await supabaseAdmin
           .from('users')
           .select('id, subscription_tier, credits_remaining, total_credits_purchased')
@@ -288,7 +288,14 @@ export async function POST(req: NextRequest) {
         }
 
         const planKey = userData.subscription_tier as keyof typeof PLAN_CREDITS
-        const creditsToAdd = PLAN_CREDITS[planKey] || 0
+        const fullCredits = PLAN_CREDITS[planKey] || 0
+
+        // Free trial converted — top up from 35 to full plan credits, then clear the flag
+        const isFreeTrial = subscription.metadata?.is_free_trial === 'true'
+        const creditsToAdd = isFreeTrial ? Math.max(0, fullCredits - 35) : fullCredits
+        if (isFreeTrial) {
+          await stripe.subscriptions.update(subscriptionId, { metadata: { is_free_trial: '' } })
+        }
 
         const newCredits = (userData.credits_remaining || 0) + creditsToAdd
         const totalPurchased = (userData.total_credits_purchased || 0) + creditsToAdd

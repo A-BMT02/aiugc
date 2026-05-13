@@ -21,7 +21,7 @@ export async function POST(req) {
       trial_settings: {
         end_behavior: { missing_payment_method: 'cancel' },
       },
-      metadata: { plan_name: 'growth' },
+      metadata: { plan_name: 'growth', is_free_trial: 'true' },
     })
 
     return Response.json({ subscriptionId: subscription.id })
