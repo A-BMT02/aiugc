@@ -12,6 +12,7 @@ function UpsellTrialContent() {
   const email = (typeof window !== 'undefined' ? localStorage.getItem('blobbi_email') : null) || searchParams.get('email') || ''
   const sessionId = searchParams.get('session_id') || ''
   const subscriptionId = searchParams.get('subscription_id') || ''
+  const isFreeTrial = searchParams.get('free_trial') === '1'
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -153,7 +154,11 @@ function UpsellTrialContent() {
         {/* ── NOTICE CARD ── */}
         <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-5 mb-6">
           <p className="text-green-100 text-sm leading-relaxed">
-            <span className="font-bold text-green-400">Important:</span> You can cancel your Growth subscription at any time.
+            {isFreeTrial ? (
+              <><span className="font-bold text-green-400">Free Trial Active:</span> You have 7 days of full access at no charge. No credit card required. Cancel anytime from your dashboard.</>
+            ) : (
+              <><span className="font-bold text-green-400">Important:</span> You can cancel your subscription at any time from your dashboard settings.</>
+            )}
           </p>
         </div>
 
@@ -169,12 +174,18 @@ function UpsellTrialContent() {
               </p>
             </div>
             <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-4">
-              <p className="text-green-400 text-xs mb-1 font-semibold">Blobbi Growth Subscription</p>
+              <p className="text-green-400 text-xs mb-1 font-semibold">AI Tool Access</p>
               <p className="text-white font-semibold text-sm flex items-center gap-2">
                 <CircleCheckBig className="w-4 h-4 text-green-400 flex-shrink-0" />
-                {(sessionId || subscriptionId) ? 'Active — $47/month' : 'Not activated'}
+                {(sessionId || subscriptionId)
+                  ? isFreeTrial ? '7-Day Free Trial — Active' : 'Active — $47/month'
+                  : 'Not activated'}
               </p>
-              {(sessionId || subscriptionId) && <p className="text-gray-400 text-xs mt-1">Cancel anytime from your settings</p>}
+              {(sessionId || subscriptionId) && (
+                <p className="text-gray-400 text-xs mt-1">
+                  {isFreeTrial ? 'Free for 7 days • Cancel anytime, no charge' : 'Cancel anytime from your settings'}
+                </p>
+              )}
             </div>
           </div>
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 space-y-3">
@@ -291,7 +302,15 @@ function UpsellTrialContent() {
         {(sessionId || subscriptionId) && (
           <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-4 mb-6 text-center">
             <p className="text-gray-500 text-xs leading-relaxed">
-              <span className="text-gray-300 font-semibold">💳 Billing Information:</span> Trial billing: $0 now, then $47/month after 7 days. Cancel anytime from your dashboard settings with one click. You'll still maintain lifetime access to everything you ordered today.
+              {isFreeTrial ? (
+                <>
+                  <span className="text-green-400 font-semibold">✓ Free Trial Active:</span> You have full access for 7 days at no charge. No payment required. Cancel anytime from your dashboard — you keep lifetime access to the course regardless.
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-300 font-semibold">💳 Billing Information:</span> Trial billing: $0 now, then $47/month after 7 days. Cancel anytime from your dashboard settings with one click. You'll still maintain lifetime access to everything you ordered today.
+                </>
+              )}
             </p>
           </div>
         )}

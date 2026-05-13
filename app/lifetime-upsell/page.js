@@ -13,6 +13,7 @@ const getCookie = (name) => {
 
 function LifetimeUpsellContent() {
   const [loading, setLoading] = useState(false)
+  const [trialLoading, setTrialLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = (typeof window !== 'undefined' ? localStorage.getItem('blobbi_email') : null) || searchParams.get('email') || ''
@@ -24,7 +25,6 @@ function LifetimeUpsellContent() {
       const customerId = typeof window !== 'undefined' ? localStorage.getItem('blobbi_customer_id') : null
 
       if (customerId) {
-        // One-click upsell — use saved card, no Stripe redirect
         const res = await fetch('/api/upsell-subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -35,7 +35,6 @@ function LifetimeUpsellContent() {
         localStorage.removeItem('blobbi_customer_id')
         router.push(`/upsell-trial?subscription_id=${data.subscriptionId}`)
       } else {
-        // Fallback — Stripe hosted checkout
         if (email) localStorage.setItem('blobbi_email', email)
         const res = await fetch('/api/upsell-checkout', {
           method: 'POST',
@@ -50,6 +49,30 @@ function LifetimeUpsellContent() {
       alert('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleFreeTrial = async () => {
+    setTrialLoading(true)
+    try {
+      const customerId = typeof window !== 'undefined' ? localStorage.getItem('blobbi_customer_id') : null
+      if (customerId) {
+        const res = await fetch('/api/free-trial', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerId }),
+        })
+        const data = await res.json()
+        if (data.error) throw new Error(data.error)
+        localStorage.removeItem('blobbi_customer_id')
+        router.push(`/upsell-trial?subscription_id=${data.subscriptionId}&free_trial=1`)
+      } else {
+        router.push('/upsell-trial')
+      }
+    } catch (err) {
+      router.push('/upsell-trial')
+    } finally {
+      setTrialLoading(false)
     }
   }
 
@@ -68,19 +91,18 @@ function LifetimeUpsellContent() {
         {/* ── HEADER ── */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-full text-red-400 text-sm font-semibold mb-6 animate-pulse">
-            <Clock className="w-4 h-4" /> FINAL OFFER — THIS PAGE DISAPPEARS WHEN YOU LEAVE
+            <Clock className="w-4 h-4" /> ONE-TIME OFFER — THIS PAGE DISAPPEARS WHEN YOU LEAVE
           </div>
 
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-5 leading-tight">
-            Unlock a{' '}
+            Keep Using the{' '}
             <span className="bg-gradient-to-r from-green-400 to-green-500 bg-clip-text text-transparent">
-              Full Month of Growth
-            </span>{' '}
-            for Just $47
+              AI From the Course
+            </span>
           </h1>
 
           <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto">
-            This is your only chance to lock in the Growth plan at this price. Once you leave, this offer is gone forever.
+            You just learned how to create AI UGC ads. Now use the exact tool to make them — start free for 7 days, or lock in our best price today.
           </p>
         </div>
 
@@ -94,8 +116,8 @@ function LifetimeUpsellContent() {
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/20 border border-green-500/40 rounded-full text-green-400 text-xs font-semibold mb-3">
                   <Star className="w-3 h-3" /> SPECIAL OFFER
                 </div>
-                <h2 className="text-2xl md:text-3xl font-black tracking-tighter mb-2">Blobbi Growth Plan</h2>
-                <p className="text-gray-400 text-sm">Everything you need to create and scale AI UGC content.</p>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tighter mb-2">Full Access to the AI Tool</h2>
+                <p className="text-gray-400 text-sm">The exact software used to create every video in the course — no restrictions.</p>
               </div>
               <div className="text-center">
                 <div className="text-sm text-gray-500 line-through mb-1">Regular $97/month</div>
@@ -210,10 +232,10 @@ function LifetimeUpsellContent() {
 
             {/* Urgency */}
             <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-5 text-center">
-              <h3 className="text-base font-bold text-red-400 mb-2">This Offer Expires When You Leave</h3>
+              <h3 className="text-base font-bold text-red-400 mb-2">$47/Month Offer Expires When You Leave</h3>
               <p className="text-gray-400 text-sm mb-3">
-                This is the ONLY time you'll see the Growth plan at $47/month.<br />
-                After this, it goes back to $97/month.
+                The $47/month deal is only available here. After you leave, it goes back to $97/month.<br />
+                <span className="text-white font-semibold">Either way, you can start free for 7 days below.</span>
               </p>
               <div className="bg-white/5 border border-white/10 rounded-xl p-3">
                 <p className="text-lg font-black text-white">You're Saving $50/Month Right Now</p>
@@ -225,13 +247,13 @@ function LifetimeUpsellContent() {
             <div className="space-y-3 pt-2">
               <button
                 onClick={handleCheckout}
-                disabled={loading}
+                disabled={loading || trialLoading}
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-5 px-6 rounded-2xl shadow-xl hover:shadow-green-500/25 transform hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="flex items-center gap-2 text-lg">
                     <Zap className="w-5 h-5 flex-shrink-0" />
-                    <span>{loading ? 'Processing...' : 'YES! Get Growth for $47/Month'}</span>
+                    <span>{loading ? 'Processing...' : 'YES! Get Full Access for $47/Month'}</span>
                   </div>
                   <div className="text-sm font-normal opacity-80">
                     Save $50/month • Instant access • Cancel anytime
@@ -240,10 +262,14 @@ function LifetimeUpsellContent() {
               </button>
 
               <button
-                onClick={() => router.push('/upsell-trial')}
-                className="w-full text-gray-600 hover:text-gray-400 text-sm py-3 px-4 cursor-pointer transition-colors"
+                onClick={handleFreeTrial}
+                disabled={loading || trialLoading}
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/20 hover:border-green-500/40 text-white font-semibold py-4 px-6 rounded-2xl transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                No thanks, I'll miss out on this one-time offer
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-base">{trialLoading ? 'Starting your trial...' : 'Start My Free 7-Day Trial'}</span>
+                  <span className="text-xs text-gray-400 font-normal">No credit card needed • Cancel anytime</span>
+                </div>
               </button>
             </div>
 
