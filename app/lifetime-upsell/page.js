@@ -102,7 +102,7 @@ function LifetimeUpsellContent() {
           </h1>
 
           <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto">
-            You just learned how to create AI UGC ads. Now use the exact tool to make them — start free for 7 days, or lock in our best price today.
+            The course walks you through this exact tool step by step. Get access now and follow along — start free for 7 days, or lock in our best price today.
           </p>
         </div>
 
