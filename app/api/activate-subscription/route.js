@@ -55,7 +55,7 @@ export async function POST(req) {
     const isFreeTrial = subscription.metadata?.is_free_trial === 'true'
     const creditsToAdd = isFreeTrial ? 35 : (PLAN_CREDITS[planName] || 0)
 
-    if (customerEmail) {
+    if (customerEmail && !isFreeTrial) {
       await sendCapiEvent({
         eventName: 'Purchase',
         email: customerEmail,
