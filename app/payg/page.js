@@ -133,7 +133,6 @@ export default function PaygPage() {
         },
         body: JSON.stringify({
           packName: pack.name,
-          price: pack.price,
           credits: pack.credits,
           duration: pack.duration,
         }),

@@ -24,9 +24,20 @@ export async function POST(req) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { packName, price, credits, duration } = await req.json()
-    if (!packName || !price || !credits) {
-      return Response.json({ error: 'packName, price and credits are required' }, { status: 400 })
+    const PRICE_IDS = {
+      Starter: 'price_1TeL9rROztKsDOlaiklOBIJT',
+      Creator: 'price_1TeLAeROztKsDOlaWqmuEpgm',
+      Studio:  'price_1TeLBMROztKsDOlaSPd7L0m0',
+    }
+
+    const { packName, credits, duration } = await req.json()
+    if (!packName || !credits) {
+      return Response.json({ error: 'packName and credits are required' }, { status: 400 })
+    }
+
+    const priceId = PRICE_IDS[packName]
+    if (!priceId) {
+      return Response.json({ error: 'Unknown pack' }, { status: 400 })
     }
 
     // Get or create Stripe customer
@@ -53,17 +64,7 @@ export async function POST(req) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `Blobbi ${packName} Pack`,
-            description: `${duration} of AI video generation · credits never expire`,
-          },
-          unit_amount: price * 100,
-        },
-        quantity: 1,
-      }],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payg/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payg`,
