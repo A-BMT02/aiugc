@@ -24,7 +24,12 @@ export async function POST(req) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const PRICE_IDS = {
+    const isLive = process.env.STRIPE_SECRET_KEY?.startsWith('sk_live')
+    const PRICE_IDS = isLive ? {
+      Starter: 'price_1TeLYwROztKsDOlarQ4m3jA4',
+      Creator: 'price_1TeLZKROztKsDOlavHJuvS5p',
+      Studio:  'price_1TeLZLROztKsDOlaq3LkXnay',
+    } : {
       Starter: 'price_1TeL9rROztKsDOlaiklOBIJT',
       Creator: 'price_1TeLAeROztKsDOlaWqmuEpgm',
       Studio:  'price_1TeLBMROztKsDOlaSPd7L0m0',
