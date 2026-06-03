@@ -83,7 +83,57 @@ export async function POST(req: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session
         console.log('✅ Checkout completed:', session.id)
         console.log('📦 Session metadata:', session.metadata)
-        console.log('💳 Session subscription:', session.subscription)
+        console.log('💳 Session mode:', session.mode)
+
+        // ── PAYG one-time credit purchase ──
+        if (session.mode === 'payment' && session.metadata?.pack_name) {
+          const userId = session.metadata.user_id
+          const credits = parseInt(session.metadata.credits || '0', 10)
+          const packName = session.metadata.pack_name
+
+          if (userId && credits > 0) {
+            const { data: currentUser } = await supabaseAdmin
+              .from('users')
+              .select('credits_remaining, total_credits_purchased')
+              .eq('id', userId)
+              .single()
+
+            const newCredits = (currentUser?.credits_remaining || 0) + credits
+            const totalPurchased = (currentUser?.total_credits_purchased || 0) + credits
+
+            await supabaseAdmin
+              .from('users')
+              .update({ credits_remaining: newCredits, total_credits_purchased: totalPurchased })
+              .eq('id', userId)
+
+            await supabaseAdmin
+              .from('credit_transactions')
+              .insert({
+                user_id: userId,
+                type: 'purchase',
+                amount: credits,
+                balance_after: newCredits,
+                stripe_payment_id: session.payment_intent as string,
+                description: `PAYG ${packName} pack`,
+              })
+
+            await supabaseAdmin
+              .from('payment_history')
+              .insert({
+                user_id: userId,
+                amount: (session.amount_total || 0) / 100,
+                currency: session.currency || 'usd',
+                status: 'succeeded',
+                stripe_payment_intent_id: session.payment_intent as string,
+                subscription_plan_id: 'payg',
+                credits_added: credits,
+                description: `PAYG ${packName} pack`,
+              })
+
+            console.log(`✅ PAYG: added ${credits} credits to user ${userId}`)
+          }
+          return NextResponse.json({ received: true })
+        }
 
         const userId = session.metadata?.user_id
         const planName = session.metadata?.plan_name

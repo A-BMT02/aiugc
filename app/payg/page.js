@@ -4,10 +4,12 @@ import { useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowRight, Check, Sparkles, Zap, Globe, Users, Wand2, Video,
-  Play, Pause, Coins, Infinity, Clock, Star, Shield, ChevronRight,
+  Play, Pause, Coins, Infinity, Clock, Star, Shield, ChevronRight, Loader2,
 } from 'lucide-react'
 import Header from '@/components/Header'
 import TestimonialsSection from '@/components/TestimonialsSection'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase/client'
 
 const SUPABASE = 'https://lfhcefxmgyjzggqzsxxr.supabase.co/storage/v1/object/public'
 
@@ -44,9 +46,9 @@ const AD_VIDEOS = [
 ]
 
 const CREDIT_PACKS = [
-  { name: 'Starter', price: 5,  duration: '30 sec', popular: false },
-  { name: 'Creator', price: 19, duration: '2 min',  popular: true  },
-  { name: 'Studio',  price: 49, duration: '6 min',  popular: false },
+  { name: 'Starter', price: 5,  credits: 5,  duration: '30 sec', popular: false },
+  { name: 'Creator', price: 19, credits: 20, duration: '2 min',  popular: true  },
+  { name: 'Studio',  price: 49, credits: 60, duration: '6 min',  popular: false },
 ]
 
 function WaitlistForm({ size = 'default' }) {
@@ -110,6 +112,43 @@ function WaitlistForm({ size = 'default' }) {
 }
 
 export default function PaygPage() {
+  const { user } = useAuth()
+  const [loadingPack, setLoadingPack] = useState(null)
+
+  const handleBuy = async (pack) => {
+    if (!user) {
+      window.location.href = '/signup?redirect=/payg'
+      return
+    }
+    try {
+      setLoadingPack(pack.name)
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) { window.location.href = '/login?redirect=/payg'; return }
+
+      const res = await fetch('/api/stripe-payg', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          packName: pack.name,
+          price: pack.price,
+          credits: pack.credits,
+          duration: pack.duration,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to create checkout')
+      window.location.href = data.url
+    } catch (err) {
+      console.error(err)
+      alert(err.message || 'Something went wrong')
+    } finally {
+      setLoadingPack(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
       <Header />
@@ -391,36 +430,26 @@ export default function PaygPage() {
           <div className="text-center mb-16">
             <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-4">
               Simple Credit Packs<br />
-              <span className="text-green-400">Launching Soon</span>
+              <span className="text-green-400">No Subscription</span>
             </h2>
             <p className="text-xl text-gray-400 max-w-xl mx-auto">
-              Pricing finalised at launch — join the waitlist to be notified first.
+              Buy once, use whenever. Credits never expire.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             {CREDIT_PACKS.map(pack => (
-              <div key={pack.name} className={`relative rounded-3xl p-8 border ${pack.popular ? 'border-green-500/50 bg-gradient-to-br from-green-500/10 to-green-600/5' : 'border-white/10 bg-white/[0.02]'}`}>
+              <div key={pack.name} className={`relative rounded-3xl p-8 border flex flex-col ${pack.popular ? 'border-green-500/50 bg-gradient-to-br from-green-500/10 to-green-600/5' : 'border-white/10 bg-white/[0.02]'}`}>
                 {pack.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-black text-xs font-bold px-4 py-1 rounded-full">
                     MOST POPULAR
                   </div>
                 )}
 
-                {/* Blurred "coming soon" overlay */}
-                <div className="absolute inset-0 rounded-3xl backdrop-blur-[1px] bg-black/30 flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-500/40 rounded-full px-4 py-2 text-sm font-semibold text-green-400">
-                      <Clock className="w-3.5 h-3.5" />
-                      Coming Soon
-                    </div>
-                  </div>
-                </div>
-
                 <div className="text-xl font-bold mb-1">{pack.name}</div>
                 <div className="text-5xl font-black mb-1">${pack.price}</div>
                 <div className="text-gray-400 text-sm mb-6">one-time · no subscription</div>
-                <div className="space-y-3">
+                <div className="space-y-3 mb-8 flex-1">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
                     <span>{pack.duration} of video</span>
@@ -438,6 +467,22 @@ export default function PaygPage() {
                     <span>20+ languages</span>
                   </div>
                 </div>
+
+                <button
+                  onClick={() => handleBuy(pack)}
+                  disabled={loadingPack === pack.name}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
+                    pack.popular
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:shadow-lg hover:shadow-green-500/30'
+                      : 'bg-white/10 hover:bg-white/20'
+                  }`}
+                >
+                  {loadingPack === pack.name ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>Get {pack.name} <ArrowRight className="w-4 h-4" /></>
+                  )}
+                </button>
               </div>
             ))}
           </div>
