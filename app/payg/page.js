@@ -44,9 +44,9 @@ const AD_VIDEOS = [
 ]
 
 const CREDIT_PACKS = [
-  { name: 'Starter',  credits: 50,  price: 9,  videos: 5,  popular: false },
-  { name: 'Creator',  credits: 150, price: 24, videos: 15, popular: true  },
-  { name: 'Studio',   credits: 400, price: 59, videos: 40, popular: false },
+  { name: 'Starter', price: 5,  duration: '30 sec', popular: false },
+  { name: 'Creator', price: 19, duration: '2 min',  popular: true  },
+  { name: 'Studio',  price: 49, duration: '6 min',  popular: false },
 ]
 
 function WaitlistForm({ size = 'default' }) {
@@ -423,11 +423,7 @@ export default function PaygPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span>{pack.credits} credits</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                    <span>~{pack.videos} minutes of video</span>
+                    <span>{pack.duration} of video</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
@@ -437,13 +433,17 @@ export default function PaygPage() {
                     <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
                     <span>All actors &amp; voices included</span>
                   </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <span>20+ languages</span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
           <div className="text-center text-sm text-gray-500">
-            10 credits = 1 minute of generated video · credits never expire
+            One-time purchase · credits never expire · use at your own pace
           </div>
         </div>
       </section>
