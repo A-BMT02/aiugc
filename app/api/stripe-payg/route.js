@@ -34,6 +34,7 @@ export async function POST(req) {
       Creator: 'price_1TeLAeROztKsDOlaWqmuEpgm',
       Studio:  'price_1TeLBMROztKsDOlaSPd7L0m0',
     }
+    const PACK_PRICES = { Starter: 5, Creator: 19, Studio: 49 }
 
     const { packName, credits, duration } = await req.json()
     if (!packName || !credits) {
@@ -71,7 +72,7 @@ export async function POST(req) {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?credits=added`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?credits=added&pack=${encodeURIComponent(packName)}&price=${PACK_PRICES[packName]}&txn={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payg`,
       metadata: {
         user_id: user.id,

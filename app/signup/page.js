@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import Header from '@/components/Header'
+import { trackSignUp } from '@/lib/gtag'
 
 const testimonials = [
   {
@@ -107,6 +108,7 @@ export default function SignupPage() {
 
     try {
       await signUp(email, password)
+      trackSignUp('email')
 
       fetch('/api/welcome-email', {
         method: 'POST',
