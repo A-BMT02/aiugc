@@ -182,7 +182,7 @@ export default function PaygPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-4">
-              100s of Actors<br />
+              100s of AI Creators<br />
               <span className="text-green-400">to Choose From</span>
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
@@ -330,7 +330,7 @@ export default function PaygPage() {
               },
               {
                 icon: Users,
-                title: '100s of Actors',
+                title: '100s of AI Creators',
                 description: 'Diverse AI actors across ages, ethnicities, and styles — with new ones added every week.',
               },
               {
