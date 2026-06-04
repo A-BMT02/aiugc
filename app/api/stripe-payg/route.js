@@ -71,7 +71,7 @@ export async function POST(req) {
       payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payg/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?credits=added`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payg`,
       metadata: {
         user_id: user.id,
