@@ -115,7 +115,7 @@ export default function SignupPage() {
       }).catch(() => {})
 
       alert('✅ Account created! You can now login')
-      router.push('/login')
+      router.push('/get-credits')
       
     } catch (err) {
       console.error('Signup error:', err)

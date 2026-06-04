@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { Mail, Lock, Eye, EyeOff, Loader2, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import Header from '@/components/Header'
@@ -84,9 +85,15 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      await signIn(email, password)
-      router.push('/dashboard')
-      
+      const result = await signIn(email, password)
+      // New users (0 credits) go to get-credits, existing users go to dashboard
+      const { data: profile } = await supabase
+        .from('users')
+        .select('credits_remaining, total_credits_purchased')
+        .eq('id', result?.user?.id)
+        .single()
+      const isNewUser = !profile || (profile.total_credits_purchased === 0 && profile.credits_remaining === 0)
+      router.push(isNewUser ? '/get-credits' : '/dashboard')
     } catch (err) {
       console.error('Login error:', err)
       

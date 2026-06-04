@@ -15,7 +15,7 @@ function SuccessContent() {
   useEffect(() => {
     if (!sessionId) { setStatus('error'); return }
 
-    fetch(`/api/stripe-payg/verify?session_id=${sessionId}`)
+    fetch(`/api/stripe-payg/verify?session_id=${encodeURIComponent(sessionId)}`)
       .then(r => r.json())
       .then(data => {
         if (data.ok) {
