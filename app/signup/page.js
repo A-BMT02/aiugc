@@ -117,6 +117,8 @@ export default function SignupPage() {
       }).catch(() => {})
 
       alert('✅ Account created! You can now login')
+      // Small delay to ensure gtag event dispatches before navigation
+      await new Promise(r => setTimeout(r, 300))
       router.push('/get-credits')
       
     } catch (err) {
