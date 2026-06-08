@@ -134,24 +134,11 @@ export default function PaygPage() {
           {/* Brand logos trust strip */}
           <div className="mb-16">
             <p className="text-xs text-gray-600 uppercase tracking-widest mb-5 text-center">Trusted by brands worldwide</p>
-            <div className="flex flex-wrap items-center justify-center gap-8 opacity-40 grayscale">
-              {[
-                { name: 'Gymshark',    domain: 'gymshark.com' },
-                { name: 'Allbirds',    domain: 'allbirds.com' },
-                { name: 'Glossier',    domain: 'glossier.com' },
-                { name: 'Warby Parker',domain: 'warbyparker.com' },
-                { name: 'Casper',      domain: 'casper.com' },
-                { name: 'Bombas',      domain: 'bombas.com' },
-                { name: 'Brooklinen',  domain: 'brooklinen.com' },
-                { name: 'Quip',        domain: 'getquip.com' },
-              ].map(brand => (
-                <img
-                  key={brand.domain}
-                  src={`https://logo.clearbit.com/${brand.domain}`}
-                  alt={brand.name}
-                  className="h-7 w-auto object-contain"
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
+            <div className="flex flex-wrap items-center justify-center gap-8">
+              {['Gymshark', 'Allbirds', 'Glossier', 'Warby Parker', 'Casper', 'Bombas', 'Brooklinen', 'Quip'].map(brand => (
+                <span key={brand} className="text-gray-600 font-bold text-lg tracking-tight hover:text-gray-400 transition-colors">
+                  {brand}
+                </span>
               ))}
             </div>
           </div>
