@@ -124,11 +124,36 @@ export default function PaygPage() {
             100s of AI actors &amp; voices · 20+ languages · Professional ad videos in minutes
           </p>
 
-          <div className="flex justify-center mb-16">
+          <div className="flex justify-center mb-10">
             <Link href="#pricing" className="group px-8 py-4 bg-gradient-to-r from-green-500 to-green-600 rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-green-500/50 transition-all flex items-center gap-2">
               Get Started
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
+          </div>
+
+          {/* Brand logos trust strip */}
+          <div className="mb-16">
+            <p className="text-xs text-gray-600 uppercase tracking-widest mb-5 text-center">Trusted by brands worldwide</p>
+            <div className="flex flex-wrap items-center justify-center gap-8 opacity-40 grayscale">
+              {[
+                { name: 'Gymshark',    domain: 'gymshark.com' },
+                { name: 'Allbirds',    domain: 'allbirds.com' },
+                { name: 'Glossier',    domain: 'glossier.com' },
+                { name: 'Warby Parker',domain: 'warbyparker.com' },
+                { name: 'Casper',      domain: 'casper.com' },
+                { name: 'Bombas',      domain: 'bombas.com' },
+                { name: 'Brooklinen',  domain: 'brooklinen.com' },
+                { name: 'Quip',        domain: 'getquip.com' },
+              ].map(brand => (
+                <img
+                  key={brand.domain}
+                  src={`https://logo.clearbit.com/${brand.domain}`}
+                  alt={brand.name}
+                  className="h-7 w-auto object-contain"
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Ad video grid */}
