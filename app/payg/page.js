@@ -51,6 +51,35 @@ const CREDIT_PACKS = [
   { name: 'Studio',  price: 49, credits: 60, duration: '6 min',  popular: false },
 ]
 
+const BRAND_LOGOS = [
+  { name: 'Gymshark',     domain: 'gymshark.com' },
+  { name: 'Allbirds',     domain: 'allbirds.com' },
+  { name: 'Glossier',     domain: 'glossier.com' },
+  { name: 'Warby Parker', domain: 'warbyparker.com' },
+  { name: 'Casper',       domain: 'casper.com' },
+  { name: 'Bombas',       domain: 'bombas.com' },
+  { name: 'Brooklinen',   domain: 'brooklinen.com' },
+  { name: 'Quip',         domain: 'getquip.com' },
+]
+
+function BrandLogo({ name, domain }) {
+  const [failed, setFailed] = useState(false)
+  if (failed) {
+    return <span className="text-gray-500 font-bold text-sm tracking-tight">{name}</span>
+  }
+  return (
+    <img
+      src={`https://logo.clearbit.com/${domain}`}
+      alt={name}
+      width={120}
+      height={32}
+      className="h-8 w-auto object-contain opacity-40 hover:opacity-60 transition-opacity"
+      style={{ filter: 'grayscale(100%) brightness(0) invert(1)' }}
+      onError={() => setFailed(true)}
+      loading="lazy"
+    />
+  )
+}
 
 export default function PaygPage() {
   const { user } = useAuth()
@@ -134,11 +163,9 @@ export default function PaygPage() {
           {/* Brand logos trust strip */}
           <div className="mb-16">
             <p className="text-xs text-gray-600 uppercase tracking-widest mb-5 text-center">Trusted by brands worldwide</p>
-            <div className="flex flex-wrap items-center justify-center gap-8">
-              {['Gymshark', 'Allbirds', 'Glossier', 'Warby Parker', 'Casper', 'Bombas', 'Brooklinen', 'Quip'].map(brand => (
-                <span key={brand} className="text-gray-600 font-bold text-lg tracking-tight hover:text-gray-400 transition-colors">
-                  {brand}
-                </span>
+            <div className="flex flex-wrap items-center justify-center gap-10">
+              {BRAND_LOGOS.map(brand => (
+                <BrandLogo key={brand.name} name={brand.name} domain={brand.domain} />
               ))}
             </div>
           </div>
