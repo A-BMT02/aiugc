@@ -62,21 +62,23 @@ const BRAND_LOGOS = [
   { name: 'Quip',         domain: 'getquip.com' },
 ]
 
+const LOGO_TOKEN = process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN
+
 function BrandLogo({ name, domain }) {
   const [failed, setFailed] = useState(false)
-  if (failed) {
-    return <span className="text-gray-500 font-bold text-sm tracking-tight">{name}</span>
+  const src = `https://img.logo.dev/${domain}?token=${LOGO_TOKEN}&theme=dark&format=png&size=160`
+
+  if (!LOGO_TOKEN || failed) {
+    return <span className="text-gray-500 font-bold text-base tracking-tight">{name}</span>
   }
   return (
     <img
-      src={`https://logo.clearbit.com/${domain}`}
+      src={src}
       alt={name}
       width={120}
       height={32}
-      className="h-8 w-auto object-contain opacity-40 hover:opacity-60 transition-opacity"
-      style={{ filter: 'grayscale(100%) brightness(0) invert(1)' }}
+      className="h-8 w-auto object-contain opacity-50 hover:opacity-80 transition-opacity"
       onError={() => setFailed(true)}
-      loading="lazy"
     />
   )
 }
